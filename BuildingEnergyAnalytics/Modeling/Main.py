@@ -16,13 +16,14 @@ from Import_Data import *
 from Clean_Data import *
 from Preprocess_Data import *
 from Model_Data import *
+from sklearn.linear_model import LinearRegression
 
 class Main:
 
 	def __init__(self,
 		file_name=None, folder_name=None, head_row=0, index_col=0, convert_col=True, concat_files=False,
 		rename_col=None, resample=True, freq='h', interpolate=True, limit=1, remove_na=True, remove_na_how='any', remove_outliers=True, sd_val=3, remove_out_of_bounds=True, low_bound=0, high_bound=9998,
-		input_col_degree=None, degree=None, output_col=None, YEAR=False, MONTH=False, WEEK=True, TOD=True, DOW=True, DOY=False, hdh_cpoint=65, cdh_cpoint=65, hdh_cdh_calc_col='OAT', var_to_expand=['TOD','DOW', 'WEEK'],
+		input_col_degree=None, degree=None, output_col=None, YEAR=False, MONTH=False, WEEK=True, TOD=True, DOW=False, DOY=False, hdh_cpoint=65, cdh_cpoint=65, hdh_cdh_calc_col='OAT', var_to_expand=['TOD','DOW', 'WEEK'],
 		model=None, time_period=None, input_col=None, plot=True):
 		'''
 			Constructor!
@@ -30,12 +31,6 @@ class Main:
 			Second line contains parameters for cleaning 
 			Third line contains parameters for preprocessing the data
 			Third line contains parameters for fitting the model
-
-			Necessary to fill,
-			1. file_name/folder_name (data source)
-			2. output_col (col to predict)
-			3. model (Linear Regression, Lasso, Ridge...)
-			4. time_period (for splitting the data)
 		'''
 		self.file_name = file_name
 		self.folder_name = folder_name 
@@ -111,20 +106,34 @@ class Main:
 		print("*****Successfully preprocessed data!*****")
 
 		print("Splitting data...")
-		model_data_obj = Model_Data(self.preprocessed_data)
-		model_data_obj.split_data(time_period=self.time_period, input_col=self.input_col, output_col=self.output_col)
+		model_data_obj = Model_Data(self.preprocessed_data, self.model, input_col=self.input_col, output_col=self.output_col)
+		model_data_obj.split_data(time_period=self.time_period)
 		self.X = model_data_obj.baseline_period_in
 		self.y = model_data_obj.baseline_period_out
 		print("*****Successfully split data!*****")
 
+		print("Fitting data to model...")
+		model_data_obj.model_fit()
+		print("Cross Val Scores for all folds are: ", model_data_obj.metrics["Cross_Val"])
+		print("Mean cross val score is: ", sum(model_data_obj.metrics["Cross_Val"]) / len(model_data_obj.metrics["Cross_Val"]))
+		if self.plot:
+			model_data_obj.display_plots()
+
 
 if __name__ == '__main__':
 	
-	main_obj = Main(
-			folder_name='../Data/', head_row=[5,5,0], 
-			rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'],
-			output_col='HW_Heat',
-			time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"]
-		)
-
-	main_obj.run()
+	'''
+	Absolutely necessary to fill,
+		1. file_name/folder_name (data source)
+		2. output_col (column to predict)
+		3. model (Linear Regression, Lasso, Ridge...)
+		4. time_period (for splitting the data)
+	'''
+	
+	# main_obj = Main(
+	# 		folder_name='../Data/', head_row=[5,5,0], 
+	# 		rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'],
+	# 		output_col='HW_Heat', MONTH=True, var_to_expand=['TOD', 'WEEK', 'MONTH'],
+	# 		model=LinearRegression(), time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"]
+	# 	)
+	# main_obj.run()
