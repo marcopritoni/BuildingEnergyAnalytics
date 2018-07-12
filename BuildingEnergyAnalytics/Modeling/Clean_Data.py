@@ -3,10 +3,11 @@ Questions:
 1. Are all the TODO's in Data_Preprocessor.py completed?
 2. flag_data() and its sub-functions required?
 
-Last modified: July 11 2018
+Last modified: July 12 2018
 @author Marco Pritoni <marco.pritoni@gmail.com>
 '''
 
+import os
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -23,6 +24,8 @@ class Clean_Data:
 			self.cleaned_data.columns = col
 		except:
 			print("Error: Could not rename columns of dataframe!")
+			os._exit(1)
+
 
 	def resample_data(self, data, freq):
 		'''
@@ -78,6 +81,7 @@ class Clean_Data:
 				print("Data resampled at \'%s\'" % freq)
 			except:
 				print("Error: Could not resample data")
+				os._exit(1)
 
 		if interpolate:
 			try:
@@ -85,6 +89,7 @@ class Clean_Data:
 				print("Data interpolated with limit of %s element" % limit)
 			except:
 				print("Error: Could not interpolate data")
+				os._exit(1)
 		
 		if remove_na:
 			try:
@@ -92,6 +97,7 @@ class Clean_Data:
 				print("Data NA removed")
 			except:
 				print("Error: Could not remove NA in data")
+				os._exit(1)
 
 		if remove_outliers:
 			try:
@@ -99,6 +105,7 @@ class Clean_Data:
 				print("Data outliers removed")
 			except:
 				print("Error: Could not remove data outliers")
+				os._exit(1)
 
 		if remove_out_of_bounds:
 			try:
@@ -106,5 +113,6 @@ class Clean_Data:
 				print("Data out of bound points removed")
 			except:
 				print("Error: Could not remove data out of bound points")
+				os._exit(1)
 
 		self.cleaned_data = data

@@ -8,6 +8,28 @@ class Preprocess_Data:
 		self.preprocessed_data = pd.DataFrame()
 
 
+	def add_degree_days(self, col='OAT', hdh_cpoint=65, cdh_cpoint=65):
+
+		if self.preprocessed_data.empty:
+			data = self.original_data
+		else:
+			data = self.preprocessed_data
+
+		# Calculate hdh
+		data['hdh'] = data[col]
+		over_hdh = data.loc[:, col] > hdh_cpoint
+		data.loc[over_hdh, 'hdh'] = 0
+		data.loc[~over_hdh, 'hdh'] = hdh_cpoint - data.loc[~over_hdh, col]
+
+		# Calculate cdh
+		data['cdh'] = data[col]
+		under_cdh = data.loc[:, col] < cdh_cpoint
+		data.loc[under_cdh, 'cdh'] = 0
+		data.loc[~under_cdh, 'cdh'] = data.loc[~under_cdh, col] - cdh_cpoint
+
+		self.preprocessed_data = data
+
+
 	def add_col_features(self, input_col=None, degree=None):
 		''' Square/Cube specific input columns '''
 		if input_col and degree:
@@ -19,7 +41,6 @@ class Preprocess_Data:
 				else:
 					data = self.preprocessed_data
 
-				# CHECK: When degree = 1, don't divide by 10
 				for i in range(len(input_col)):
 					data.loc[:,input_col[i]+str(degree[i])] = pow(data.loc[:,input_col[i]],degree[i]) / pow(10,degree[i]-1)
 				
@@ -49,28 +70,6 @@ class Preprocess_Data:
 			data["DOW"] = data.index.weekday
 		if DOY:
 			data["DOY"] = data.index.dayofyear
-
-		self.preprocessed_data = data
-
-
-	def add_degree_days(self, col='OAT', hdh_cpoint=65, cdh_cpoint=65):
-
-		if self.preprocessed_data.empty:
-			data = self.original_data
-		else:
-			data = self.preprocessed_data
-
-		# Calculate hdh
-		data['hdh'] = data[col]
-		over_hdh = data.loc[:, col] > hdh_cpoint
-		data.loc[over_hdh, 'hdh'] = 0
-		data.loc[~over_hdh, 'hdh'] = hdh_cpoint - data.loc[~over_hdh, col]
-
-		# Calculate cdh
-		data['cdh'] = data[col]
-		under_cdh = data.loc[:, col] < cdh_cpoint
-		data.loc[under_cdh, 'cdh'] = 0
-		data.loc[~under_cdh, 'cdh'] = data.loc[~under_cdh, col] - cdh_cpoint
 
 		self.preprocessed_data = data
 

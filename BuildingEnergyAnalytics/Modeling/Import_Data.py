@@ -75,13 +75,13 @@ class Import_Data:
 
 		# CHECK: Below case finds file_name in every folder! Necessary?
 		elif isinstance(file_name, str) and isinstance(folder_name, list):
-			print("pass")
+			print("WORK IN PROGRESS")
 			pass
 
 		# CHECK: How to handle the below case? 1-1 mapping or find same file in all folders? 
 		# Best to avoid this case as the code can become unnecessarily complex
 		elif isinstance(file_name, list) and isinstance(folder_name, list):
-			print("pass")
+			print("WORK IN PROGRESS")
 			pass
 
 		else:
@@ -95,11 +95,16 @@ class Import_Data:
 		# Denotes all csv files
 		if file_name == "*":
 			file_name_list = sorted(glob.glob(folder_name + '/*.csv'))
-			# Call previous function again with parameters changed (file_name=file_name_list, folder_name=None)
-			# Done to reduce redundancy of code
-			self.import_csv(file_name=file_name_list, head_row=head_row, index_col=index_col, 
-							convert_col=convert_col, concat_files=concat_files)
-			return self.data
+
+			if not file_name_list:
+				print("Error: Either the folder does not contain any csv files or invalid folder provided")
+				os._exit(1)
+			else:
+				# Call previous function again with parameters changed (file_name=file_name_list, folder_name=None)
+				# Done to reduce redundancy of code
+				self.import_csv(file_name=file_name_list, head_row=head_row, index_col=index_col, 
+								convert_col=convert_col, concat_files=concat_files)
+				return self.data
 
 		else:
 			path = os.path.join(folder_name, file_name)
@@ -125,16 +130,3 @@ class Import_Data:
 					data[col] = pd.to_numeric(data[col], errors="coerce")
 
 		return data
-
-
-	'''
-	def lucid_api(self):
-		pass
-	def sky_spark(self):
-		pass
-	def mongo_db(self):
-		pass
-	.
-	.
-	.
-	'''
