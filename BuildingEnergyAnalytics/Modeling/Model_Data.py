@@ -1,19 +1,28 @@
 '''
-Last modified: July 11 2018
+Last modified: July 16 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
 import os
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.model_selection import cross_val_score
+from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.linear_model import LinearRegression, Lasso, Ridge
+from sklearn.model_selection import cross_val_score, train_test_split
 
 class Model_Data:
 
-	def __init__(self, df, model, input_col=None, output_col=None):
+	def __init__(self, df, time_period, output_col, input_col=None):
 		''' Constructor '''
 		self.original_data = df
-		self.model = model
+		self.output_col = output_col
+
+		if (not time_period) or (len(time_period) % 2 != 0):
+			print("Error: time_period needs to be a multiple of 2 (i.e. have a start and end date)")
+			os._exit(1)
+		else:
+			self.time_period = time_period
 
 		if not input_col:
 			input_col = list(self.original_data.columns)
@@ -21,66 +30,132 @@ class Model_Data:
 			self.input_col = input_col
 		else:
 			self.input_col = input_col
-
-		self.output_col = output_col
 		
 		self.baseline_period_in = pd.DataFrame()
 		self.baseline_period_out = pd.DataFrame()
-		self.year1_in = pd.DataFrame()
-		self.year1_out = pd.DataFrame()
-		self.year2_in = pd.DataFrame()
-		self.year2_out = pd.DataFrame()
-
+		self.y_true = pd.DataFrame()
+		self.y_pred = pd.DataFrame()
 		self.metrics = {}
 
 
-	def split_data(self, time_period=None):
-		''' 
-		CHECK: time_period length is always going to be 6?
-		This function converts time_periods into slice objects and split data (different from train_test_split) 
-		'''
+	def split_data(self):
+		''' Split data according to time_period values '''
 
-		if not isinstance(time_period, list):
-			print("Error: time_period should be a list of strings")
+		time_period1 = (slice(self.time_period[0], self.time_period[1]))
+		try:
+			self.baseline_period_in = self.original_data.loc[time_period1, self.input_col]
+			self.baseline_period_out = self.original_data.loc[time_period1, self.output_col]
+		except:
+			print("Error: Could not retrieve baseline_period data")
 			os._exit(1)
-		elif len(time_period) != 6:
-			print("Error: time_period length should be 6")
-			os._exit(1)
+
+		# Error checking to ensure time_period values are valid
+		if len(self.time_period) > 2:
+			for i in range(2, len(self.time_period), 2):
+				period = (slice(self.time_period[i], self.time_period[i+1]))
+				try:
+					self.original_data.loc[period, self.input_col]
+					self.original_data.loc[period, self.output_col]
+				except:
+					print("Error: Could not retrieve projection period data")
+					os._exit(1)
+
+
+	def linear_regression(self):
+
+		print("Linear Regression...")
+		model = LinearRegression()
+		scores = cross_val_score(model, self.baseline_period_in, self.baseline_period_out)
+		mean_score = sum(scores) / len(scores)
+		
+		print("Cross Val Scores: ", scores)
+		print("Mean Cross Val Score: ", mean_score)
+
+		return mean_score
+
+
+	def lasso_regression(self):
+
+		print("Lasso Regression...")
+		max_score = {}
+		max_score['score'] = float('-inf')
+		max_score['alpha'] = float('-inf')
+		alphas = np.logspace(-3, -0.5, 5)
+		
+		for alpha in alphas:
+			
+			model = Lasso(alpha=alpha, max_iter=40000)
+			scores = cross_val_score(model, self.baseline_period_in, self.baseline_period_out)
+			mean_score = sum(scores) / len(scores)
+			
+			print('Alpha: {} Cross Val Scores: {} Mean Cross Val Score: {}'.format(alpha, scores, mean_score))
+
+			if mean_score > max_score['score']:
+				max_score['score'] = mean_score
+				max_score['alpha'] = alpha
+
+		return max_score
+
+
+	def ridge_regression(self):
+
+		print("Ridge Regression...")
+		max_score = {}
+		max_score['score'] = float('-inf')
+		max_score['alpha'] = float('-inf')
+		alphas = np.logspace(-4, -0.5, 5)
+		
+		for alpha in alphas:
+			
+			model = Ridge(alpha=alpha)
+			scores = cross_val_score(model, self.baseline_period_in, self.baseline_period_out)
+			mean_score = sum(scores) / len(scores)
+
+			print('Alpha: {} Cross Val Scores: {} Mean Cross Val Score: {}'.format(alpha, scores, mean_score))
+
+			if mean_score > max_score['score']:
+				max_score['score'] = mean_score
+				max_score['alpha'] = alpha
+
+		return max_score				
+
+
+	def run_models(self):
+
+		# score_1 = self.linear_regression()
+		lasso_score = self.lasso_regression()
+		ridge_score = self.ridge_regression()
+
+		if lasso_score['score'] > ridge_score['score']:
+			model_name = 'Lasso Regression'
+			model = Lasso(alpha=lasso_score['alpha'])
 		else:
-			# Baseline period 1 
-			tPeriod1 = (slice(time_period[0], time_period[1]))
-			# Evaluation period 2 
-			tPeriod2 = (slice(time_period[2], time_period[3]))
-			# Evaluation period 3 
-			tPeriod3 = (slice(time_period[4], time_period[5]))
+			model_name = 'Lasso Regression'
+			model = Ridge(alpha=ridge_score['alpha'])
 
-			try:
-				self.baseline_period_in = self.original_data.loc[tPeriod1, self.input_col]
-				self.baseline_period_out = self.original_data.loc[tPeriod1, self.output_col]
-			except:
-				print("Error: Could not retrieve baseline_period data")
-				os._exit(1)
-
-			try:
-				self.year1_in = self.original_data.loc[tPeriod2, self.input_col]
-				self.year1_out = self.original_data.loc[tPeriod2, self.output_col]
-			except:
-				print("Error: Could not retrieve Year 1 data")
-				os._exit(1)
-
-			try:
-				self.year2_in = self.original_data.loc[tPeriod3, self.input_col]
-				self.year2_out = self.original_data.loc[tPeriod3, self.output_col]
-			except:
-				print("Error: Could not retrieve Year 2 data")
-				os._exit(1)
+		return model, model_name
 
 
-	def model_fit(self):
+	def best_model_fit(self, model):
 
-		self.metrics["Cross_Val"] = cross_val_score(self.model, self.baseline_period_in.dropna(), 
-													self.baseline_period_out.dropna())
+		X_train, X_test, y_train, y_test = train_test_split(self.baseline_period_in, self.baseline_period_out, 
+														test_size=0.30, random_state=42)
 
+		model.fit(X_train, y_train)
+		self.y_true = y_test
+		self.y_pred = pd.DataFrame(model.predict(X_test))
+
+
+	def display_metrics(self):
+
+		r2 = r2_score(self.y_true, self.y_pred)
+		mse = mean_squared_error(self.y_true, self.y_pred)
+		adj_r2 = 1 - (1 - r2) * (self.y_pred.count() - 1) / (self.y_pred.count() - len(self.input_col) - 1)
+
+		print('{:<10}: {}'.format('R2', r2))
+		print('{:<10}: {}'.format('MSE', mse))
+		print('{:<10}: {}'.format('Adj_R2', adj_r2))
+		
 
 	def display_plots(self):
 

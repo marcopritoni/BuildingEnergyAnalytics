@@ -2,16 +2,13 @@
 This script is a wrapper class around all the different modules - importing, cleaning, preprocessing and modeling the data.
 
 TODO
-1. Make all the module functions independent (add a "data" parameter)
-2. Use TimeSeriesSplit - https://machinelearningmastery.com/backtest-machine-learning-models-time-series-forecasting/
-3. Before fitting model, print input_col and output_col
-4. Drop last column to remove multi-collinearity
-5. Remove .dropna() before fitting model
-6. Make time_periods flexible (i.e. don't restrict to 6 values only)
-7. Add all metrics in calc_scores - Adj_R2, NMBE, CV_RMSE, RMSE...
-8. Ensure Import_Data's functions match that of Influx & Skyspark's class. 
+1. Use TimeSeriesSplit - https://machinelearningmastery.com/backtest-machine-learning-models-time-series-forecasting/
+2. Ensure Import_Data's functions match that of Influx & Skyspark's class. 
+3. Standardize/Normalize data before fitting in model?
+4. Make time_periods flexible (i.e. don't restrict to 6 values only)
+5. Add all metrics in calc_scores - NMBE, CV_RMSE, RMSE...
 
-Last modified: July 12 2018
+Last modified: July 16 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
@@ -28,13 +25,13 @@ class Main:
 		file_name=None, folder_name=None, head_row=0, index_col=0, convert_col=True, concat_files=False,
 		rename_col=None, resample=True, freq='h', interpolate=True, limit=1, remove_na=True, remove_na_how='any', remove_outliers=True, sd_val=3, remove_out_of_bounds=True, low_bound=0, high_bound=9998,
 		input_col_degree=None, degree=None, output_col=None, YEAR=False, MONTH=False, WEEK=True, TOD=True, DOW=False, DOY=False, hdh_cpoint=65, cdh_cpoint=65, hdh_cdh_calc_col='OAT', var_to_expand=['TOD','DOW', 'WEEK'],
-		model=None, time_period=None, input_col=None, plot=True):
+		time_period=None, input_col=None, plot=True):
 		'''
 			Constructor!
 			First line contains parameters for importing data
 			Second line contains parameters for cleaning 
 			Third line contains parameters for preprocessing the data
-			Third line contains parameters for fitting the model
+			Fourth line contains parameters for fitting the model
 		'''
 		self.file_name = file_name
 		self.folder_name = folder_name 
@@ -70,7 +67,6 @@ class Main:
 		self.hdh_cdh_calc_col = hdh_cdh_calc_col 
 		self.var_to_expand = var_to_expand
 			
-		self.model = model
 		self.time_period = time_period
 		self.input_col = input_col
 		self.plot = plot
@@ -91,7 +87,7 @@ class Main:
 			head_row=self.head_row, index_col=self.index_col, convert_col=self.convert_col, concat_files=self.concat_files)
 		
 		self.imported_data = import_data_obj.data
-		print("*****Successfully imported data!*****\n")
+		print('{:*^50}\n'.format('Successfully imported data!'))
 
 		return self.imported_data
 
@@ -111,7 +107,7 @@ class Main:
 			clean_data_obj.rename_columns(self.rename_col)
 		
 		self.cleaned_data = clean_data_obj.cleaned_data
-		print("*****Successfully cleaned data!*****\n")
+		print('{:*^50}\n'.format('Successfully cleaned data!'))
 
 		return self.cleaned_data
 
@@ -128,7 +124,7 @@ class Main:
 		preprocess_data_obj.create_dummies(var_to_expand=self.var_to_expand)
 		
 		self.preprocessed_data = preprocess_data_obj.preprocessed_data
-		print("*****Successfully preprocessed data!*****\n")
+		print('{:*^50}\n'.format('Successfully preprocessed data!'))
 
 		return self.preprocessed_data
 
@@ -137,23 +133,26 @@ class Main:
 
 		print("Splitting data...")
 		
-		model_data_obj = Model_Data(data, self.model, input_col=self.input_col, output_col=self.output_col)
-		model_data_obj.split_data(time_period=self.time_period)
+		model_data_obj = Model_Data(data, self.time_period, self.output_col, input_col=self.input_col)
+		model_data_obj.split_data()
 		
 		self.X = model_data_obj.baseline_period_in
 		self.y = model_data_obj.baseline_period_out
-		print("*****Successfully split data!*****\n")
+		print('{:*^50}\n'.format('Successfully split data!'))
 
-		print("Fitting data to model...")
-		
-		model_data_obj.model_fit()
-		print("Cross Val Scores for all folds are: ", model_data_obj.metrics["Cross_Val"])
-		print("Mean cross val score is: ", 
-			sum(model_data_obj.metrics["Cross_Val"]) / len(model_data_obj.metrics["Cross_Val"]))
-		if self.plot:
-			model_data_obj.display_plots()
+		print("Running different models...")
+		best_model, model_name = model_data_obj.run_models()
 
-		print("*****Successfully modeled data!*****\n")
+		print("Fitting data to ", model_name)
+		model_data_obj.best_model_fit(best_model)
+
+		print("Displaying metrics...")
+		model_data_obj.display_metrics()
+
+		# if self.plot:
+		# 	model_data_obj.display_plots()
+
+		print('{:*^50}\n'.format('Successfully modeled data!'))
 
 
 if __name__ == '__main__':
@@ -171,7 +170,7 @@ if __name__ == '__main__':
 	# 		folder_name='../../../../../Desktop/LBNL/Data/', head_row=[5,5,0], 
 	# 		rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'],
 	# 		output_col='HW_Heat', MONTH=True, var_to_expand=['TOD', 'WEEK', 'MONTH'],
-	# 		model=LinearRegression(), time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"]
+	# 		time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"]
 	# 	)
 
 	# imported_data = main_obj.import_data()

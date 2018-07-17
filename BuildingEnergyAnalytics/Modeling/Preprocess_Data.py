@@ -86,7 +86,15 @@ class Preprocess_Data:
 
 		for var in var_to_expand:
 			add_var = pd.get_dummies(data[var], prefix=var)
+			
 			# Add all the columns to the model data
 			data = data.join(add_var)
+
+			# Drop the original column that was expanded
+			data.drop(columns=[var], inplace=True)
+
+			# Drop last column to remove multi-collinearity
+			cols = [col for col in data.columns if var in col]
+			data.drop(columns=[cols[-1]], inplace=True)
 
 		self.preprocessed_data = data
