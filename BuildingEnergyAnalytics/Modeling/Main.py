@@ -2,11 +2,19 @@
 This script is a wrapper class around all the different modules - importing, cleaning, preprocessing and modeling the data.
 
 TODO
-1. Use TimeSeriesSplit - https://machinelearningmastery.com/backtest-machine-learning-models-time-series-forecasting/
-2. Ensure Import_Data's functions match that of Influx & Skyspark's class. 
-3. Standardize/Normalize data before fitting in model?
-4. Make time_periods flexible (i.e. don't restrict to 6 values only)
+1. Run all the different models (cross validating with different alphas) and log them to a file. 
+2. Run the model with the best score with alphas in the range (alpha-x, alpha+x)
+3. Add TimeSeriesSplit, ANN, SVM.
+4. Standardize/Normalize data before fitting to model.
 5. Add all metrics in calc_scores - NMBE, CV_RMSE, RMSE...
+6. Make time_periods flexible (i.e. don't restrict to 6 values only)
+7. Figure out which variables to save.
+8. Instead of putting all the arguments in the constructor, separate it out amongst the different functions. 
+
+Bugs
+1. When getting data from influxdb, 
+	1. df = df.resample('d').mean() is wrong!
+	2. df.loc[(slice(None, None, None)), ...] does not give an error.
 
 Last modified: July 16 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
@@ -129,7 +137,7 @@ class Main:
 		return self.preprocessed_data
 
 
-	def split_model_data(self, data):
+	def model(self, data):
 
 		print("Splitting data...")
 		
@@ -141,16 +149,16 @@ class Main:
 		print('{:*^50}\n'.format('Successfully split data!'))
 
 		print("Running different models...")
-		best_model, model_name = model_data_obj.run_models()
+		best_model = model_data_obj.run_models()
 
-		print("Fitting data to ", model_name)
+		# print("Fitting data to ", model_name)
 		model_data_obj.best_model_fit(best_model)
 
 		print("Displaying metrics...")
 		model_data_obj.display_metrics()
 
-		# if self.plot:
-		# 	model_data_obj.display_plots()
+		if self.plot:
+			model_data_obj.display_plots()
 
 		print('{:*^50}\n'.format('Successfully modeled data!'))
 
@@ -165,21 +173,21 @@ if __name__ == '__main__':
 		4. time_period (for splitting the data)
 	'''
 	
-	################# IMPORT DATA FROM CSV FILES #################
-	# main_obj = Main(
-	# 		folder_name='../../../../../Desktop/LBNL/Data/', head_row=[5,5,0], 
-	# 		rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'],
-	# 		output_col='HW_Heat', MONTH=True, var_to_expand=['TOD', 'WEEK', 'MONTH'],
-	# 		time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"]
-	# 	)
+	################ IMPORT DATA FROM CSV FILES #################
+	main_obj = Main(
+			folder_name='../../../../../Desktop/LBNL/Data/', head_row=[5,5,0], 
+			rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'],
+			output_col='HW_Heat', MONTH=True, var_to_expand=['TOD', 'WEEK', 'MONTH'],
+			time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"]
+		)
 
-	# imported_data = main_obj.import_data()
-	# cleaned_data = main_obj.clean_data(imported_data)
-	# preprocessed_data = main_obj.preprocess_data(cleaned_data)
-	# main_obj.split_model_data(preprocessed_data)
+	imported_data = main_obj.import_data()
+	cleaned_data = main_obj.clean_data(imported_data)
+	preprocessed_data = main_obj.preprocess_data(cleaned_data)
+	main_obj.model(preprocessed_data)
 
 	
-	################# IMPORT DATA FROM INFLUXDB #################
+	# ################# IMPORT DATA FROM INFLUXDB #################
 	# import configparser
 	# from influxdb import DataFrameClient
 
@@ -192,7 +200,7 @@ if __name__ == '__main__':
 	# password = config['CREDENTIALS']['password']
 
 	# meter_names = ['\'r:p:lbnl:r:2193afbc-27e92439 BACnet JCI 15.0 Power (BTU/h)\'',
-    #          '\'r:p:lbnl:r:21954442-d84f76af LBNL Weather Station Dry-Bulb Temperature Sensor (Main, Two-Meter) (°F)\'']
+ #             '\'r:p:lbnl:r:21954442-d84f76af LBNL Weather Station Dry-Bulb Temperature Sensor (Main, Two-Meter) (°F)\'']
 	# column_names = ['Power', 'OAT']
 
 	# client = DataFrameClient(host=host, port=port, database=database, 
@@ -211,9 +219,10 @@ if __name__ == '__main__':
 	# main_obj = Main( 
 	# 		remove_out_of_bounds=False,
 	# 		input_col=['OAT'], degree=[2], output_col='Power', MONTH=True, var_to_expand=['TOD', 'WEEK', 'MONTH'],
-	# 		model=LinearRegression(), time_period=["2017-11", "2018-06", None, None, None, None]
+	# 		time_period=["2017-11", "2018-06", None, None, None, None]
 	# 	)
 
 	# cleaned_data = main_obj.clean_data(df)
 	# preprocessed_data = main_obj.preprocess_data(cleaned_data)
-	# main_obj.split_model_data(preprocessed_data)
+	# main_obj.model(preprocessed_data)
+
