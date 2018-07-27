@@ -9,14 +9,13 @@ TODO
 5. Add all metrics in calc_scores - NMBE, CV_RMSE, RMSE...
 6. Make time_periods flexible (i.e. don't restrict to 6 values only)
 7. Figure out which variables to save.
-8. Instead of putting all the arguments in the constructor, separate it out amongst the different functions. 
 
 Bugs
 1. When getting data from influxdb, 
 	1. df = df.resample('d').mean() is wrong!
 	2. df.loc[(slice(None, None, None)), ...] does not give an error.
 
-Last modified: July 16 2018
+Last modified: July 27 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
@@ -29,55 +28,7 @@ from sklearn.linear_model import LinearRegression
 
 class Main:
 
-	def __init__(self,
-		file_name=None, folder_name=None, head_row=0, index_col=0, convert_col=True, concat_files=False,
-		rename_col=None, resample=True, freq='h', interpolate=True, limit=1, remove_na=True, remove_na_how='any', remove_outliers=True, sd_val=3, remove_out_of_bounds=True, low_bound=0, high_bound=9998,
-		input_col_degree=None, degree=None, output_col=None, YEAR=False, MONTH=False, WEEK=True, TOD=True, DOW=False, DOY=False, hdh_cpoint=65, cdh_cpoint=65, hdh_cdh_calc_col='OAT', var_to_expand=['TOD','DOW', 'WEEK'],
-		time_period=None, input_col=None, plot=True):
-		'''
-			Constructor!
-			First line contains parameters for importing data
-			Second line contains parameters for cleaning 
-			Third line contains parameters for preprocessing the data
-			Fourth line contains parameters for fitting the model
-		'''
-		self.file_name = file_name
-		self.folder_name = folder_name 
-		self.head_row = head_row
-		self.index_col = index_col
-		self.convert_col = convert_col 
-		self.concat_files = concat_files
-
-		self.rename_col = rename_col
-		self.resample = resample
-		self.freq = freq 
-		self.interpolate = interpolate
-		self.limit = limit
-		self.remove_na = remove_na
-		self.remove_na_how =  remove_na_how 
-		self.remove_outliers = remove_outliers
-		self.sd_val = sd_val
-		self.remove_out_of_bounds = remove_out_of_bounds
-		self.low_bound = low_bound 
-		self.high_bound = high_bound
-
-		self.input_col_degree = input_col_degree
-		self.degree = degree 
-		self.output_col = output_col
-		self.YEAR = YEAR
-		self.MONTH = MONTH
-		self.WEEK = WEEK
-		self.TOD = TOD 
-		self.DOW = DOW
-		self.DOY = DOY
-		self.hdh_cpoint = hdh_cpoint 
-		self.cdh_cpoint = cdh_cpoint
-		self.hdh_cdh_calc_col = hdh_cdh_calc_col 
-		self.var_to_expand = var_to_expand
-			
-		self.time_period = time_period
-		self.input_col = input_col
-		self.plot = plot
+	def __init__(self):
 
 		self.imported_data = pd.DataFrame()
 		self.cleaned_data = pd.DataFrame()
@@ -86,107 +37,98 @@ class Main:
 		self.y = pd.DataFrame()
 
 
-	def import_data(self):
+	def import_data(self, file_name=None, folder_name=None, head_row=0, index_col=0, 
+					convert_col=True, concat_files=False):
 
 		print("Importing data...")
 		
 		import_data_obj = Import_Data()
-		import_data_obj.import_csv(file_name=self.file_name, folder_name=self.folder_name, 
-			head_row=self.head_row, index_col=self.index_col, convert_col=self.convert_col, concat_files=self.concat_files)
-		
+		import_data_obj.import_csv(file_name=file_name, folder_name=folder_name, 
+			head_row=head_row, index_col=index_col, convert_col=convert_col, concat_files=concat_files)
 		self.imported_data = import_data_obj.data
+		
 		print('{:*^50}\n'.format('Successfully imported data!'))
-
 		return self.imported_data
 
 
-	def clean_data(self, data):
+	def clean_data(self, data, rename_col=None, resample=True, freq='h', interpolate=True, limit=1, 
+					remove_na=True, remove_na_how='any', remove_outliers=True, sd_val=3, 
+					remove_out_of_bounds=True, low_bound=0, high_bound=float('inf')):
 
 		print("Cleaning data...")
 		
 		clean_data_obj = Clean_Data(data)
-		
-		clean_data_obj.clean_data(resample=self.resample, freq=self.freq, interpolate=self.interpolate, 
-								limit=self.limit, remove_na=self.remove_na, remove_na_how=self.remove_na_how, 
-								remove_outliers=self.remove_outliers, sd_val=self.sd_val, 
-								remove_out_of_bounds=self.remove_out_of_bounds, 
-								low_bound=self.low_bound, high_bound=self.high_bound)
-		if self.rename_col:
-			clean_data_obj.rename_columns(self.rename_col)
-		
+		clean_data_obj.clean_data(resample=resample, freq=freq, interpolate=interpolate, 
+								limit=limit, remove_na=remove_na, remove_na_how=remove_na_how, 
+								remove_outliers=remove_outliers, sd_val=sd_val, 
+								remove_out_of_bounds=remove_out_of_bounds, 
+								low_bound=low_bound, high_bound=high_bound)
+		if rename_col:
+			clean_data_obj.rename_columns(rename_col)
 		self.cleaned_data = clean_data_obj.cleaned_data
+		
 		print('{:*^50}\n'.format('Successfully cleaned data!'))
-
 		return self.cleaned_data
 
 
-	def preprocess_data(self, data):
-
+	def preprocess_data(self, data, input_col_degree=None, degree=None, 
+						YEAR=False, MONTH=False, WEEK=False, TOD=False, DOW=False, DOY=False, 
+						hdh_cpoint=65, cdh_cpoint=65, hdh_cdh_calc_col='OAT', var_to_expand=None):
+		
 		print("Preprocessing data...")
 		
 		preprocess_data_obj = Preprocess_Data(data)
-		preprocess_data_obj.add_degree_days(col=self.hdh_cdh_calc_col, hdh_cpoint=self.hdh_cpoint, cdh_cpoint=self.cdh_cpoint)
-		preprocess_data_obj.add_col_features(input_col=self.input_col_degree, degree=self.degree)
-		preprocess_data_obj.add_time_features(YEAR=self.YEAR, MONTH=self.MONTH, WEEK=self.WEEK, 
-												TOD=self.TOD, DOW=self.DOW, DOY=self.DOY)
-		preprocess_data_obj.create_dummies(var_to_expand=self.var_to_expand)
-		
+		preprocess_data_obj.add_degree_days(col=hdh_cdh_calc_col, hdh_cpoint=hdh_cpoint, cdh_cpoint=cdh_cpoint)
+		preprocess_data_obj.add_col_features(input_col=input_col_degree, degree=degree)
+		preprocess_data_obj.add_time_features(YEAR=YEAR, MONTH=MONTH, WEEK=WEEK, 
+												TOD=TOD, DOW=DOW, DOY=DOY)
+		preprocess_data_obj.create_dummies(var_to_expand=var_to_expand)
 		self.preprocessed_data = preprocess_data_obj.preprocessed_data
+		
 		print('{:*^50}\n'.format('Successfully preprocessed data!'))
-
 		return self.preprocessed_data
 
 
-	def model(self, data):
+	def model(self, data, output_col=None, time_period=None, input_col=None, plot=True):
 
 		print("Splitting data...")
 		
-		model_data_obj = Model_Data(data, self.time_period, self.output_col, input_col=self.input_col)
+		model_data_obj = Model_Data(data, time_period, output_col, input_col=input_col)
 		model_data_obj.split_data()
-		
 		self.X = model_data_obj.baseline_period_in
 		self.y = model_data_obj.baseline_period_out
 		print('{:*^50}\n'.format('Successfully split data!'))
 
 		print("Running different models...")
-		best_model = model_data_obj.run_models()
+		best_model, best_model_name = model_data_obj.run_models()
+		print('{:*^50}\n'.format('Successfully ran all models!'))
 
-		# print("Fitting data to ", model_name)
+		print("Fitting data to Best Model: ", best_model_name)
 		model_data_obj.best_model_fit(best_model)
+		print('{:*^50}\n'.format('Successfully ran best model!'))
 
 		print("Displaying metrics...")
 		model_data_obj.display_metrics()
+		print('{:*^50}\n'.format('Successfully displayed metricsl!'))
 
-		if self.plot:
+		if plot:
 			model_data_obj.display_plots()
-
+		
 		print('{:*^50}\n'.format('Successfully modeled data!'))
 
 
 if __name__ == '__main__':
-	
-	'''
-	Absolutely necessary to fill,
-		1. file_name/folder_name (data source)
-		2. output_col (column to predict)
-		3. model (Linear Regression, Lasso, Ridge...)
-		4. time_period (for splitting the data)
-	'''
-	
+		
 	################ IMPORT DATA FROM CSV FILES #################
-	main_obj = Main(
-			folder_name='../../../../../Desktop/LBNL/Data/', head_row=[5,5,0], 
-			rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'],
-			output_col='HW_Heat', MONTH=True, var_to_expand=['TOD', 'WEEK', 'MONTH'],
-			time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"]
-		)
+	main_obj = Main()
 
-	imported_data = main_obj.import_data()
-	cleaned_data = main_obj.clean_data(imported_data)
-	preprocessed_data = main_obj.preprocess_data(cleaned_data)
-	main_obj.model(preprocessed_data)
+	imported_data = main_obj.import_data(folder_name='../../../../../Desktop/LBNL/Data/', head_row=[5,5,0])
+	cleaned_data = main_obj.clean_data(imported_data, high_bound=9998,
+									rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'])
+	preprocessed_data = main_obj.preprocess_data(cleaned_data, WEEK=True, TOD=True, var_to_expand=['TOD','WEEK'])
+	main_obj.model(preprocessed_data, output_col='HW_Heat', 
+					time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"])
 
-	
 	# ################# IMPORT DATA FROM INFLUXDB #################
 	# import configparser
 	# from influxdb import DataFrameClient

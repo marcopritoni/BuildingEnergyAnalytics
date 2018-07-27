@@ -114,6 +114,7 @@ class Model_Data:
         self.scores.append(score)
         self.model_names.append('Ridge Regression')
 
+
     def elastic_net_regression(self):
 
         print("Elastic Net Regression...")
@@ -130,6 +131,7 @@ class Model_Data:
         self.scores.append(score)
         self.model_names.append('Elastic Net Regression')
 
+
     def run_models(self):
 
         self.linear_regression()
@@ -143,7 +145,7 @@ class Model_Data:
                 max_score = score
 
         print('Choosing model with highest score: ', self.model_names[self.scores.index(max_score)])
-        return self.models[self.scores.index(max_score)]
+        return self.models[self.scores.index(max_score)], self.model_names[self.scores.index(max_score)]
 
 
     def best_model_fit(self, model):
