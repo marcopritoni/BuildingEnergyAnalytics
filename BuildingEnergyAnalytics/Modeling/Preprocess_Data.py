@@ -1,14 +1,23 @@
+'''
+Last modified: July 28 2018
+@author Marco Pritoni <marco.pritoni@gmail.com>
+@author Pranav Gupta <phgupta@ucdavis.edu>
+'''
+
 import pandas as pd
 
 class Preprocess_Data:
 
-	def __init__(self, df):
+	def __init__(self, df, f):
 		''' Constructor '''
 		self.original_data = df
 		self.preprocessed_data = pd.DataFrame()
+		self.f = f
 
 
 	def add_degree_days(self, col='OAT', hdh_cpoint=65, cdh_cpoint=65):
+
+		self.f.write('Adding degree days...\n')
 
 		if self.preprocessed_data.empty:
 			data = self.original_data
@@ -32,6 +41,8 @@ class Preprocess_Data:
 
 	def add_col_features(self, input_col=None, degree=None):
 		''' Square/Cube specific input columns '''
+		self.f.write('Adding column features...\n')
+
 		if input_col and degree:
 			if len(input_col) != len(degree):
 				print("Error: input_col and degree should have equal length")
@@ -52,6 +63,7 @@ class Preprocess_Data:
 		# CHECK: Always add below time_feature or set it as parameter?
 		# data["date"]=data.index.date
 		'''
+		self.f.write('Adding time features...\n')
 
 		if self.preprocessed_data.empty:
 			data = self.original_data
@@ -75,9 +87,8 @@ class Preprocess_Data:
 
 
 	def create_dummies(self, var_to_expand=['TOD','DOW', 'WEEK']):
-		''' 
-			CHECK: Drop last column to remove multi-collinearity.
-		''' 
+
+		self.f.write('Creating dummies...\n')
 
 		if self.preprocessed_data.empty:
 			data = self.original_data
