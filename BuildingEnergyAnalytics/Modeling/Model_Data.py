@@ -1,15 +1,14 @@
 '''
-Last modified: July 27 2018
+Last modified: July 28 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
 import os
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV, ElasticNetCV
-from sklearn.model_selection import KFold, cross_val_score, train_test_split, TimeSeriesSplit
+from sklearn.model_selection import KFold, cross_val_score, train_test_split
 
 class Model_Data:
 
@@ -156,15 +155,15 @@ class Model_Data:
                                                         test_size=0.30, random_state=42)
 
         self.model.fit(X_train, y_train)
-        self.y_true = y_test
-        self.y_pred = pd.DataFrame(self.model.predict(X_test))
+        self.y_true = y_test # Pandas Series
+        self.y_pred = self.model.predict(X_test) # Array
 
 
     def display_metrics(self):
 
         r2 = r2_score(self.y_true, self.y_pred)
         mse = mean_squared_error(self.y_true, self.y_pred)
-        adj_r2 = 1 - (1 - r2) * (self.y_pred.count() - 1) / (self.y_pred.count() - len(self.input_col) - 1)
+        adj_r2 = 1 - (1 - r2) * (self.y_true.count() - 1) / (self.y_true.count() - len(self.input_col) - 1)
 
         print('{:<10}: {}'.format('R2', r2))
         print('{:<10}: {}'.format('MSE', mse))
@@ -173,87 +172,31 @@ class Model_Data:
 
     def display_plots(self):
 
-        fig = plt.figure()
+        # Number of plots to display
+        nrows = len(self.time_period) / 2
+        
+        # Create figure
+        fig = plt.figure(1)
 
-        # Figure 1 - Baseline
-        plot_df = pd.DataFrame()
-        plot_df['y_true'] = self.y_true
-        plot_df['y_pred'] = self.y_pred
-        ax1 = fig.add_subplot(211)
-        ax1.scatter(plot_df['y_true'], plot_df['y_pred'])
-        ax1.set_xlabel("True Values")
-        ax1.set_ylabel("Predicted Values")
-        ax1.set_title("Baseline Period [{}]".format(self.output_col))
+        # Plot 1 - Baseline
+        base_df = pd.DataFrame()
+        base_df['y_true'] = self.y_true
+        base_df['y_pred'] = self.y_pred
+        ax1 = fig.add_subplot(nrows, 1, 1)
+        base_df.plot(ax=ax1, title='Baseline Period ({}-{})'.format(self.time_period[0], self.time_period[1]))
 
-        # Project to Year 1
-        plot_df1 = pd.DataFrame()
-        period1 = (slice(self.time_period[2], self.time_period[3]))
-        plot_df1['y_true'] = self.original_data.loc[period1, self.output_col]
-        plot_df1['y_pred'] = self.model.predict(self.original_data.loc[period1, self.input_col])
-        ax2 = fig.add_subplot(212)
-        ax2.scatter(plot_df1['y_true'], plot_df1['y_pred'])
-        ax2.set_xlabel("True Values")
-        ax2.set_ylabel("Predicted Values")
-        ax2.set_title("Projected Period")
-
-        plt.show()
-
-        '''
-        # Figure 1 - Baseline
-        plot_df = pd.DataFrame()
-        plot_df['y_true'] = self.y_true
-        plot_df['y_pred'] = self.y_pred
-        plt.figure(1)
-        plt.scatter(plot_df['y_true'], plot_df['y_pred'])
-        plt.xlabel("True Values")
-        plt.ylabel("Predicted Values")
-        plt.title("Baseline Period [{}]".format(self.output_col))
+        # Display projection plots
+        if len(self.time_period) > 2:
+            
+            num_plot = 2
+            for i in range(2, len(self.time_period), 2):
+                ax = fig.add_subplot(nrows, 1, num_plot)
+                period = (slice(self.time_period[i], self.time_period[i+1]))
+                project_df = pd.DataFrame()
+                project_df['y_true'] = self.original_data.loc[period, self.output_col]
+                project_df['y_pred'] = self.model.predict(self.original_data.loc[period, self.input_col])
+                project_df.plot(ax=ax, title='Projection Period ({}-{})'.format(self.time_period[i], self.time_period[i+1]))
+                num_plot += 1
 
         plt.show()
 
-        # Project to Year 1
-        plot_df1 = pd.DataFrame()
-        period1 = (slice(self.time_period[2], self.time_period[3]))
-        plot_df1['y_true'] = self.original_data.loc[period1, self.output_col]
-        plot_df1['y_pred'] = self.model.predict(self.original_data.loc[period1, self.input_col])
-        plt.figure(2)
-        plt.scatter(plot_df1['y_true'], plot_df1['y_pred'])
-        plt.xlabel("True Values")
-        plt.ylabel("Predicted Values")
-        plt.title("Projected Period")
-
-        plt.show()
-        '''
-
-        '''
-        # Creating dataframe
-        plot_df = pd.DataFrame()
-        plot_df["y_true"] = self.baseline_period_out.dropna()
-        self.model.fit(self.baseline_period_in.dropna(), self.baseline_period_out.dropna())
-        plot_df["y_pred"] = self.model.predict(self.baseline_period_in.dropna())
-        # plot_df.plot(figsize=(15,5)) # CHECK: Figure out how to plot a dataframe
-        # Scatter plot
-        plt.scatter(plot_df['y_true'], plot_df['y_pred'])
-        plt.xlabel("True Values")
-        plt.ylabel("Predicted Values")
-        plt.title("Baseline Period [{}]".format(self.output_col))
-        plt.show()
-
-        # Project to Year 1
-        plot_df1 = pd.DataFrame()
-        plot_df1["y_true"] = self.year1_out.dropna()
-        plot_df1["y_pred"] = self.model.predict(self.year1_in.dropna())
-        sav_plt = plot_df1.diff(axis=1)["y_pred"]
-        # Plot projection vs real post data
-        plot_df1.plot(figsize=(15,5))
-        print("Cumulative savings = %f percent" % ((sav_plt.sum()/(plot_df1[["y_pred"]].sum()[0])*100)))
-
-        # Project to Year 2
-        plot_df2 = pd.DataFrame()
-        plot_df2["y_true"] = self.year2_out.dropna()
-        plot_df2["y_pred"] = self.model.predict(self.year2_in.dropna())
-        sav_plt = plot_df2.diff(axis=1)["y_pred"]
-        # Plot projection vs real post data
-        plot_df2.plot(figsize=(15,5))
-        print("Cumulative savings = %f percent" % ((sav_plt.sum()/(plot_df2[["y_pred"]].sum()[0])*100)))
-        '''
