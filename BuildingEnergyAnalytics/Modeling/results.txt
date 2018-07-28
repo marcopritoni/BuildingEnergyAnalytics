@@ -1,0 +1,56 @@
+
+
+Time: 2018-07-28 15:49:03.589183
+
+Cleaning data...
+Data resampled at 'h'
+Data interpolated with limit of 1 element
+Data NA removed
+Data outliers removed
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+Splitting data...
+*************Finished splitting data!*************
+
+Model selection...
+
+Linear Regression...
+Cross Val Scores: [-8.26155838e+20 -1.21759041e+20 -5.46358309e+20]
+Mean Cross Val Scores: -4.980910625722658e+20
+
+Lasso Regression...
+Best Alpha: 17728.589259302258
+Mean Cross Val Score: 0.20684706072991832
+Adj R2 Score: 0.19994880237579282
+
+Ridge Regression...
+Best Alpha: 0.1
+Mean Cross Val Score: 0.24636028628926798
+Adj R2 Score: 0.23980568478216135
+
+Elastic Net Regression...
+Best Alpha: 35457.17851860452
+Mean Cross Val Score: 0.08385558808398175
+Adj R2 Score: 0.0758876407560668
+***********Finished running all models!***********
+
+Choosing best model: Ridge Regression
+*******Successfully fit data to best model!*******
+
+Displaying metrics...
+R2        : 0.24539480582871465
+MSE       : 204199302054.3281
+RMSE      : 451884.1688467611
+Adj_R2    : 0.22306077300374594
+***********Finished displaying metrics!***********
+
+Displaying plots...
+*************Finished modeling data!**************
+

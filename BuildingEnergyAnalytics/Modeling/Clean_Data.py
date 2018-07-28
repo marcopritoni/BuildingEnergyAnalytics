@@ -1,8 +1,4 @@
 '''
-Questions:
-1. Are all the TODO's in Data_Preprocessor.py completed?
-2. flag_data() and its sub-functions required?
-
 Last modified: July 28 2018
 @author Marco Pritoni <marco.pritoni@gmail.com>
 '''

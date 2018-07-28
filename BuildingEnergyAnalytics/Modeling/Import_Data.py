@@ -1,7 +1,4 @@
 '''
-Questions
-1. CSV_Importer_2.py - Lines 118-127 ???
-
 Notes
 1. If only folder is specified and no filename, all csv's will be read in sorted order (by name)
 

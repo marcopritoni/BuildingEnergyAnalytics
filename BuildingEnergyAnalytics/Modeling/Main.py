@@ -5,7 +5,7 @@ TODO
 1. Run the model with the best score with alphas in the range (alpha-x, alpha+x)
 2. Add TimeSeriesSplit, ANN, SVM.
 3. Standardize/Normalize data before fitting to model.
-4. Add all metrics in calc_scores - NMBE, CV_RMSE, RMSE...
+4. Add NMBE in Model_Data.py/display_metrics().
 5. Figure out which variables to save/delete.
 
 Note

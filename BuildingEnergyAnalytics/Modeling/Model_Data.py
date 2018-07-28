@@ -4,6 +4,7 @@ Last modified: July 28 2018
 '''
 
 import os
+import math
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score, mean_squared_error
@@ -194,6 +195,8 @@ class Model_Data:
         self.f.write('{:<10}: {}\n'.format('R2', r2))
         # print('{:<10}: {}'.format('MSE', mse))
         self.f.write('{:<10}: {}\n'.format('MSE', mse))
+        # print('{:<10}: {}'.format('MSE', mse))
+        self.f.write('{:<10}: {}\n'.format('RMSE', math.sqrt(mse)))
         # print('{:<10}: {}'.format('Adj_R2', adj_r2))
         self.f.write('{:<10}: {}\n'.format('Adj_R2', adj_r2))
 
