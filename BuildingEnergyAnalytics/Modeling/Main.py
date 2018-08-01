@@ -15,8 +15,8 @@ Last modified: July 28 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
+import datetime
 import pandas as pd
-from datetime import datetime
 from Import_Data import *
 from Clean_Data import *
 from Preprocess_Data import *
@@ -32,12 +32,13 @@ class Main:
 		self.preprocessed_data = pd.DataFrame()
 		self.X = pd.DataFrame()
 		self.y = pd.DataFrame()
+		self.metrics = {}
 
 		if not result_filename:
 			result_filename = 'results.txt'
 
 		self.f = open(result_filename, 'a')
-		self.f.write('\n\nTime: {}\n\n'.format(datetime.now())) # Local timezone
+		self.f.write('\n\nTime: {}\n\n'.format(datetime.datetime.now())) # Local timezone
 
 	def __del__(self):
 		''' Destructor '''
@@ -129,7 +130,7 @@ class Main:
 
 		# print("Displaying metrics...")
 		self.f.write('Displaying metrics...\n')
-		model_data_obj.display_metrics()
+		self.metrics = model_data_obj.display_metrics()
 		# print('{:*^50}\n'.format('Successfully displayed metrics!'))
 		self.f.write('{:*^50}\n\n'.format('Finished displaying metrics!'))
 
@@ -140,50 +141,52 @@ class Main:
 		# print('{:*^50}\n'.format('Successfully modeled data!'))
 		self.f.write('{:*^50}\n\n'.format('Finished modeling data!'))
 
+		return self.metrics
+
 
 if __name__ == '__main__':
 		
 	################ IMPORT DATA FROM CSV FILES #################
-	# main_obj = Main()
+	main_obj = Main()
 
-	# imported_data = main_obj.import_data(folder_name='../../../../../Desktop/LBNL/Data/', head_row=[5,5,0])
-	# cleaned_data = main_obj.clean_data(imported_data, high_bound=9998,
-	# 								rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'])
-	# preprocessed_data = main_obj.preprocess_data(cleaned_data, WEEK=True, TOD=True, var_to_expand=['TOD','WEEK'])
-	# main_obj.model(preprocessed_data, output_col='HW_Heat', 
-	# 				time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"])
+	imported_data = main_obj.import_data(folder_name='../../../../../Desktop/LBNL/Data/', head_row=[5,5,0])
+	cleaned_data = main_obj.clean_data(imported_data, high_bound=9998,
+									rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'])
+	preprocessed_data = main_obj.preprocess_data(cleaned_data, WEEK=True, TOD=True, var_to_expand=['TOD','WEEK'])
+	main_obj.model(preprocessed_data, output_col='HW_Heat', 
+					time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"])
 
 	################# IMPORT DATA FROM INFLUXDB #################
-	import configparser
-	from influxdb import DataFrameClient
+	# import configparser
+	# from influxdb import DataFrameClient
 
-	config = configparser.ConfigParser()
-	config.read('./config.ini')
-	host = config['CREDENTIALS']['host']
-	port = config['CREDENTIALS']['port']
-	database = config['CREDENTIALS']['database']
-	username = config['CREDENTIALS']['username']
-	password = config['CREDENTIALS']['password']
+	# config = configparser.ConfigParser()
+	# config.read('./config.ini')
+	# host = config['CREDENTIALS']['host']
+	# port = config['CREDENTIALS']['port']
+	# database = config['CREDENTIALS']['database']
+	# username = config['CREDENTIALS']['username']
+	# password = config['CREDENTIALS']['password']
 
-	meter_names = ['\'r:p:lbnl:r:2193afbc-27e92439 BACnet JCI 15.0 Power (BTU/h)\'',
-             '\'r:p:lbnl:r:21954442-d84f76af LBNL Weather Station Dry-Bulb Temperature Sensor (Main, Two-Meter) (°F)\'']
-	column_names = ['Power', 'OAT']
+	# meter_names = ['\'r:p:lbnl:r:2193afbc-27e92439 BACnet JCI 15.0 Power (BTU/h)\'',
+ #             '\'r:p:lbnl:r:21954442-d84f76af LBNL Weather Station Dry-Bulb Temperature Sensor (Main, Two-Meter) (°F)\'']
+	# column_names = ['Power', 'OAT']
 
-	client = DataFrameClient(host=host, port=port, database=database, 
-							username=username, password=password, ssl=True, verify_ssl=True)
+	# client = DataFrameClient(host=host, port=port, database=database, 
+	# 						username=username, password=password, ssl=True, verify_ssl=True)
 
-	df = pd.DataFrame()
-	for i, meter_name in enumerate(meter_names):
-	    query = 'SELECT Value FROM pyTestDB.autogen.Skyspark_Analysis WHERE time > \'2017-11-05T06:45:00.000Z\' AND \"Meter Name\"=' + meter_name
-	    result = client.query(query)
-	    result = result['Skyspark_Analysis']
-	    result.columns = [column_names[i]]
-	    df = df.join(result, how='outer')
+	# df = pd.DataFrame()
+	# for i, meter_name in enumerate(meter_names):
+	#     query = 'SELECT Value FROM pyTestDB.autogen.Skyspark_Analysis WHERE time > \'2017-11-05T06:45:00.000Z\' AND \"Meter Name\"=' + meter_name
+	#     result = client.query(query)
+	#     result = result['Skyspark_Analysis']
+	#     result.columns = [column_names[i]]
+	#     df = df.join(result, how='outer')
 
-	df = df.resample('h').mean()
+	# df = df.resample('h').mean()
 
-	main_obj = Main()
-	cleaned_data = main_obj.clean_data(df, remove_out_of_bounds=False)
-	preprocessed_data = main_obj.preprocess_data(cleaned_data, input_col_degree=['OAT'], degree=[2], 
-												MONTH=True, WEEK=True, var_to_expand=['MONTH', 'WEEK'])
-	main_obj.model(preprocessed_data, output_col='Power', time_period=["2017-11", "2018-06"])
+	# main_obj = Main()
+	# cleaned_data = main_obj.clean_data(df, remove_out_of_bounds=False)
+	# preprocessed_data = main_obj.preprocess_data(cleaned_data, input_col_degree=['OAT'], degree=[2], 
+	# 											MONTH=True, WEEK=True, var_to_expand=['MONTH', 'WEEK'])
+	# main_obj.model(preprocessed_data, output_col='Power', time_period=["2017-11", "2018-06"])

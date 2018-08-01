@@ -187,18 +187,21 @@ class Model_Data:
 
     def display_metrics(self):
 
-        r2 = r2_score(self.y_true, self.y_pred)
-        mse = mean_squared_error(self.y_true, self.y_pred)
-        adj_r2 = 1 - (1 - r2) * (self.y_true.count() - 1) / (self.y_true.count() - len(self.input_col) - 1)
+        self.metrics['r2'] = r2_score(self.y_true, self.y_pred)
+        self.metrics['mse'] = mean_squared_error(self.y_true, self.y_pred)
+        self.metrics['rmse'] = math.sqrt(self.metrics['mse'])
+        self.metrics['adj_r2'] = 1 - ((1 - self.metrics['r2']) * (self.y_true.count() - 1) / (self.y_true.count() - len(self.input_col) - 1))
 
         # print('{:<10}: {}'.format('R2', r2))
-        self.f.write('{:<10}: {}\n'.format('R2', r2))
+        self.f.write('{:<10}: {}\n'.format('R2', self.metrics['r2']))
         # print('{:<10}: {}'.format('MSE', mse))
-        self.f.write('{:<10}: {}\n'.format('MSE', mse))
+        self.f.write('{:<10}: {}\n'.format('MSE', self.metrics['mse']))
         # print('{:<10}: {}'.format('MSE', mse))
-        self.f.write('{:<10}: {}\n'.format('RMSE', math.sqrt(mse)))
+        self.f.write('{:<10}: {}\n'.format('RMSE', self.metrics['rmse']))
         # print('{:<10}: {}'.format('Adj_R2', adj_r2))
-        self.f.write('{:<10}: {}\n'.format('Adj_R2', adj_r2))
+        self.f.write('{:<10}: {}\n'.format('Adj_R2', self.metrics['adj_r2']))
+
+        return self.metrics
 
 
     def display_plots(self, figsize):
