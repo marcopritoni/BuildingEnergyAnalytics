@@ -2,20 +2,27 @@
 This script is a wrapper class around all the different modules - importing, cleaning, preprocessing and modeling the data.
 
 TODO
-1. Run the model with the best score with alphas in the range (alpha-x, alpha+x)
-2. Add TimeSeriesSplit, ANN, SVM.
-3. Standardize/Normalize data before fitting to model.
-4. Add NMBE in Model_Data.py/display_metrics().
-5. Figure out which variables to save/delete.
+1. Add TimeSeriesSplit, ANN, SVM.
+2. Standardize/Normalize data before fitting to model.
+3. Add percent error, NMBE in Model_Data.py/display_metrics().
+4. Figure out which variables to save/delete.
+5. Prevent overlapping of Matplotlib graphs.
+6. Documentation.
+7. Change "try except" to "try except Exception as e".
+8. Change os._exit(1) to something that calls cleanup handlers before terminating.
+9. Add custom function feature.
 
 Note
 1. df.loc[(slice(None, None, None)), ...] is equivalent to "df.loc[:,...]"
+2. df.resample(freq='h').mean() drops all non-float/non-int columns
+3. os._exit(1) exits the program without calling cleanup handlers.
 
-Last modified: July 28 2018
+Last modified: August 2 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
 import datetime
+import numpy as np
 import pandas as pd
 from Import_Data import *
 from Clean_Data import *
@@ -104,12 +111,13 @@ class Main:
 		return self.preprocessed_data
 
 
-	def model(self, data, output_col, time_period=None, input_col=None, plot=True, figsize=None):
+	def model(self, data, output_col, alphas=np.logspace(-4,1,30),
+			time_period=None, input_col=None, plot=True, figsize=None):
 
 		# print("Splitting data...")
 		self.f.write('Splitting data...\n')
 		
-		model_data_obj = Model_Data(data, self.f, time_period, output_col, input_col=input_col)
+		model_data_obj = Model_Data(data, self.f, time_period, output_col, alphas, input_col)
 		model_data_obj.split_data()
 		self.X = model_data_obj.baseline_period_in
 		self.y = model_data_obj.baseline_period_out
@@ -153,7 +161,7 @@ if __name__ == '__main__':
 	cleaned_data = main_obj.clean_data(imported_data, high_bound=9998,
 									rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'])
 	preprocessed_data = main_obj.preprocess_data(cleaned_data, WEEK=True, TOD=True, var_to_expand=['TOD','WEEK'])
-	main_obj.model(preprocessed_data, output_col='HW_Heat', 
+	main_obj.model(preprocessed_data, output_col='HW_Heat', alphas=np.logspace(-4,1,10), figsize=(18,5),
 					time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"])
 
 	################# IMPORT DATA FROM INFLUXDB #################

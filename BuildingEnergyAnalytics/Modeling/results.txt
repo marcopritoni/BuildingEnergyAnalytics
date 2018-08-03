@@ -1,6 +1,6 @@
 
 
-Time: 2018-08-01 13:36:35.803789
+Time: 2018-08-02 19:17:16.437701
 
 Importing data...
 *************Finished importing data!*************
@@ -30,29 +30,29 @@ Cross Val Scores: [-8.09418725e+18 -1.44657502e+19 -3.78725594e+14]
 Mean Cross Val Scores: -7.520105400766479e+18
 
 Lasso Regression...
-Best Alpha: 7.64108747910034
-Mean Cross Val Score: 0.3277798085982766
-Adj R2 Score: 0.31511971312401355
+Best Alpha: 0.00035938136638046257
+Cross Val Score: 0.21643053451902108
+Adj R2 Score: 0.2016733695742713
 
 Ridge Regression...
-Best Alpha: 1.0
-Mean Cross Val Score: 0.7458625451442995
-Adj R2 Score: 0.7410763092007608
+Best Alpha: 10.0
+Cross Val Score: 0.18740275861207856
+Adj R2 Score: 0.1720989061100553
 
 Elastic Net Regression...
-Best Alpha: 8.745022374533933
-Mean Cross Val Score: 0.32348230166061476
-Adj R2 Score: 0.31074127013470076
+Best Alpha: 0.016681005372000592
+Cross Val Score: 0.18941230580108284
+Adj R2 Score: 0.17414629961727224
 ***********Finished running all models!***********
 
-Choosing best model: Ridge Regression
+Choosing best model: Lasso Regression
 *******Successfully fit data to best model!*******
 
 Displaying metrics...
-R2        : 0.729301653871923
-MSE       : 125.5210039274387
-RMSE      : 11.203615663143694
-Adj_R2    : 0.7115296247426177
+R2        : 0.7290415794893459
+MSE       : 125.64159867086367
+RMSE      : 11.208996327542607
+Adj_R2    : 0.7112524758209122
 ***********Finished displaying metrics!***********
 
 Displaying plots...
