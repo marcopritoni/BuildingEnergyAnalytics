@@ -8,9 +8,7 @@ TODO
 4. Figure out which variables to save/delete.
 5. Prevent overlapping of Matplotlib graphs.
 6. Documentation.
-7. Change "try except" to "try except Exception as e".
-8. Change os._exit(1) to something that calls cleanup handlers before terminating.
-9. Add custom function feature.
+7. Add custom function feature.
 
 Note
 1. df.loc[(slice(None, None, None)), ...] is equivalent to "df.loc[:,...]"

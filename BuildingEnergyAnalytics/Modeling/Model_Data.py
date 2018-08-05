@@ -1,9 +1,8 @@
 '''
-Last modified: August 2 2018
+Last modified: August 5 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
-import os
 import math
 import numpy as np
 import pandas as pd
@@ -24,7 +23,7 @@ class Model_Data:
         if (not time_period) or (len(time_period) % 2 != 0):
             # print("Error: time_period needs to be a multiple of 2 (i.e. have a start and end date)")
             self.f.write('Error: time_period needs to be a multiple of 2 (i.e. have a start and end date)\n')
-            os._exit(1)
+            raise SystemError('time_period needs to be a multiple of 2 (i.e. have a start and end date)')
         else:
             self.time_period = time_period
 
@@ -54,10 +53,11 @@ class Model_Data:
         try:
             self.baseline_period_in = self.original_data.loc[time_period1, self.input_col]
             self.baseline_period_out = self.original_data.loc[time_period1, self.output_col]
-        except:
+        except Exception as e:
             # print("Error: Could not retrieve baseline_period data")
             self.f.write('Error: Could not retrieve baseline_period data\n')
-            os._exit(1)
+            self.f.write(str(e))
+            raise
 
         # Error checking to ensure time_period values are valid
         if len(self.time_period) > 2:
@@ -66,10 +66,11 @@ class Model_Data:
                 try:
                     self.original_data.loc[period, self.input_col]
                     self.original_data.loc[period, self.output_col]
-                except:
+                except Exception as e:
                     # print("Error: Could not retrieve projection period data")
                     self.f.write('Error: Could not retrieve projection period data\n')
-                    os._exit(1)
+                    self.f.write(str(e))
+                    raise
 
 
     def linear_regression(self):
@@ -276,10 +277,7 @@ class Model_Data:
         plt.legend()
         plt.show()
 
-        max_score = float('-inf')
-        for score, _, _ in zip(self.scores, self.models, self.model_names):
-            if score > max_score:
-                max_score = score
+        max_score = max(self.scores)
 
         return self.models[self.scores.index(max_score)], self.model_names[self.scores.index(max_score)]
 

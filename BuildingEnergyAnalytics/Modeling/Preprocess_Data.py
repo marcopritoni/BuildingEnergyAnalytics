@@ -1,5 +1,5 @@
 '''
-Last modified: July 28 2018
+Last modified: August 5 2018
 @author Marco Pritoni <marco.pritoni@gmail.com>
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
@@ -46,6 +46,7 @@ class Preprocess_Data:
 		if input_col and degree:
 			if len(input_col) != len(degree):
 				print("Error: input_col and degree should have equal length")
+				raise SystemError('input_col and degree should have equal length.')
 			else:
 				if self.preprocessed_data.empty:
 					data = self.original_data
