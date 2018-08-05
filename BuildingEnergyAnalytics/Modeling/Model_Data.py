@@ -262,24 +262,47 @@ class Model_Data:
 
     def run_models(self):
 
-        self.linear_regression()
-        lasso_scores = self.lasso_regression()
+        # self.linear_regression()
+        # lasso_scores = self.lasso_regression()
         ridge_scores = self.ridge_regression()
-        elastic_scores = self.elastic_net_regression()
+        # elastic_scores = self.elastic_net_regression()
 
-        # Plot Model Score vs Alphas to get an idea of which alphas work best
-        plt.plot(self.alphas, lasso_scores, color='blue', label='Lasso')
-        plt.plot(self.alphas, ridge_scores, color='black', label='Ridge')
-        plt.plot(self.alphas, elastic_scores, color='red', label='ElasticNet')
-        plt.xlabel('Alpha')
-        plt.ylabel('Model')
-        plt.title("R2 Score with varying alpha")
-        plt.legend()
-        plt.show()
+        # # Plot Model Score vs Alphas to get an idea of which alphas work best
+        # plt.plot(self.alphas, lasso_scores, color='blue', label='Lasso')
+        # plt.plot(self.alphas, ridge_scores, color='black', label='Ridge')
+        # plt.plot(self.alphas, elastic_scores, color='red', label='ElasticNet')
+        # plt.xlabel('Alpha')
+        # plt.ylabel('Model Accuracy')
+        # plt.title("R2 Score with varying alpha")
+        # plt.legend()
+        # plt.show()
 
         max_score = max(self.scores)
 
         return self.models[self.scores.index(max_score)], self.model_names[self.scores.index(max_score)]
+
+
+    def custom_model(self, func):
+        '''
+            TODO: Define custom function's parameters, its data types, and return types
+        '''
+
+        y_true, y_pred = func(self.baseline_period_in, self.baseline_period_out)
+
+        metrics = {}
+        metrics['r2'] = r2_score(y_true, y_pred)
+        metrics['mse'] = mean_squared_error(y_true, y_pred)
+        metrics['rmse'] = math.sqrt(metrics['mse'])
+        metrics['adj_r2'] = 1 - ((1 - metrics['r2']) * (y_true.count() - 1) / (y_true.count() - len(self.baseline_period_in.count()) - 1))
+
+        # print('{:<10}: {}'.format('R2', r2))
+        self.f.write('{:<10}: {}\n'.format('R2', metrics['r2']))
+        # print('{:<10}: {}'.format('MSE', mse))
+        self.f.write('{:<10}: {}\n'.format('MSE', metrics['mse']))
+        # print('{:<10}: {}'.format('MSE', mse))
+        self.f.write('{:<10}: {}\n'.format('RMSE', metrics['rmse']))
+        # print('{:<10}: {}'.format('Adj_R2', adj_r2))
+        self.f.write('{:<10}: {}\n'.format('Adj_R2', metrics['adj_r2']))
 
 
     def best_model_fit(self, model):
@@ -342,5 +365,6 @@ class Model_Data:
                     title='Projection Period ({}-{})'.format(self.time_period[i], self.time_period[i+1]))
                 num_plot += 1
 
+        plt.tight_layout()
         plt.show()
 

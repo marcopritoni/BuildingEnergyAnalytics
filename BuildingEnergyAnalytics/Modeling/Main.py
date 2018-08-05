@@ -6,16 +6,15 @@ TODO
 2. Standardize/Normalize data before fitting to model.
 3. Add percent error, NMBE in Model_Data.py/display_metrics().
 4. Figure out which variables to save/delete.
-5. Prevent overlapping of Matplotlib graphs.
-6. Documentation.
-7. Add custom function feature.
+5. Documentation.
+6. Add custom function feature.
 
 Note
 1. df.loc[(slice(None, None, None)), ...] is equivalent to "df.loc[:,...]"
 2. df.resample(freq='h').mean() drops all non-float/non-int columns
 3. os._exit(1) exits the program without calling cleanup handlers.
 
-Last modified: August 2 2018
+Last modified: August 5 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
@@ -110,7 +109,7 @@ class Main:
 
 
 	def model(self, data, output_col, alphas=np.logspace(-4,1,30),
-			time_period=None, input_col=None, plot=True, figsize=None):
+			time_period=None, input_col=None, plot=True, figsize=None, custom_model_func=None):
 
 		# print("Splitting data...")
 		self.f.write('Splitting data...\n')
@@ -127,6 +126,13 @@ class Main:
 		best_model, best_model_name = model_data_obj.run_models()
 		# print('{:*^50}\n'.format('Successfully ran all models!'))
 		self.f.write('{:*^50}\n\n'.format('Finished running all models!'))
+
+		if custom_model_func:
+			# print('Running custom model...')
+			self.f.write('Running custom model function...\n')
+			model_data_obj.custom_model(custom_model_func)
+			# print('{:*^50}\n'.format('Successfully ran custom model function!'))
+			self.f.write('{:*^50}\n\n'.format('Finished running custom model function!'))
 
 		# print("Fitting data to Best Model: ", best_model_name)
 		self.f.write('Choosing best model: {}\n'.format(best_model_name))
@@ -153,6 +159,14 @@ class Main:
 if __name__ == '__main__':
 		
 	################ IMPORT DATA FROM CSV FILES #################
+
+	def func(X, y):
+		from sklearn.linear_model import LinearRegression
+		from sklearn.model_selection import cross_val_score
+		model = LinearRegression()
+		model.fit(X, y)
+		return y, model.predict(X)
+
 	main_obj = Main()
 
 	imported_data = main_obj.import_data(folder_name='../../../../../Desktop/LBNL/Data/', head_row=[5,5,0])
@@ -160,7 +174,8 @@ if __name__ == '__main__':
 									rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'])
 	preprocessed_data = main_obj.preprocess_data(cleaned_data, WEEK=True, TOD=True, var_to_expand=['TOD','WEEK'])
 	main_obj.model(preprocessed_data, output_col='HW_Heat', alphas=np.logspace(-4,1,10), figsize=(18,5),
-					time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"])
+					time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"],
+					custom_model_func=func)
 
 	################# IMPORT DATA FROM INFLUXDB #################
 	# import configparser

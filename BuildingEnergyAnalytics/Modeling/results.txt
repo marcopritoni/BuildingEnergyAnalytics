@@ -1,6 +1,9 @@
 
 
-Time: 2018-08-05 13:43:59.124922
+Time: 2018-08-05 14:47:10.356057
+
+Importing data...
+*************Finished importing data!*************
 
 Cleaning data...
 Data resampled at 'h'
@@ -8,5 +11,77 @@ Data interpolated with limit of 1 element
 Data NA removed
 Data outliers removed
 Data out of bound points removed
-Error: Could not rename columns of dataframe!
-Length mismatch: Expected axis has 2 elements, new values have 4 elements
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+Splitting data...
+*************Finished splitting data!*************
+
+Model selection...
+
+Ridge Regression...
+Best Alpha: 10.0
+Cross Val Score: 0.18740275861207856
+Adj R2 Score: 0.1720989061100553
+***********Finished running all models!***********
+
+Running custom model function...
+
+
+Time: 2018-08-05 14:49:08.000245
+
+Importing data...
+*************Finished importing data!*************
+
+Cleaning data...
+Data resampled at 'h'
+Data interpolated with limit of 1 element
+Data NA removed
+Data outliers removed
+Data out of bound points removed
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+Splitting data...
+*************Finished splitting data!*************
+
+Model selection...
+
+Ridge Regression...
+Best Alpha: 10.0
+Cross Val Score: 0.18740275861207856
+Adj R2 Score: 0.1720989061100553
+***********Finished running all models!***********
+
+Running custom model function...
+R2        : 0.7460423736735797
+MSE       : 115.15902839067458
+RMSE      : 10.731217470104433
+Adj_R2    : 0.7412595244869085
+*****Finished running custom model function!******
+
+Choosing best model: Ridge Regression
+*******Successfully fit data to best model!*******
+
+Displaying metrics...
+R2        : 0.7204875374596778
+MSE       : 129.60805047435363
+RMSE      : 11.384553152159887
+Adj_R2    : 0.7021368393585516
+***********Finished displaying metrics!***********
+
+Displaying plots...
+*************Finished modeling data!**************
+
