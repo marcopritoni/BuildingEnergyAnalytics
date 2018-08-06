@@ -7,7 +7,6 @@ TODO
 3. Add percent error, NMBE in Model_Data.py/display_metrics().
 4. Figure out which variables to save/delete.
 5. Documentation.
-6. Add custom function feature.
 
 Note
 1. df.loc[(slice(None, None, None)), ...] is equivalent to "df.loc[:,...]"
@@ -165,7 +164,7 @@ if __name__ == '__main__':
 		from sklearn.model_selection import cross_val_score
 		model = LinearRegression()
 		model.fit(X, y)
-		return y, model.predict(X)
+		return model.predict(X)
 
 	main_obj = Main()
 

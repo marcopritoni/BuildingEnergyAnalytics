@@ -1,40 +1,6 @@
 
 
-Time: 2018-08-05 14:47:10.356057
-
-Importing data...
-*************Finished importing data!*************
-
-Cleaning data...
-Data resampled at 'h'
-Data interpolated with limit of 1 element
-Data NA removed
-Data outliers removed
-Data out of bound points removed
-*************Finished cleaning data!**************
-
-Preprocessing data...
-Adding degree days...
-Adding column features...
-Adding time features...
-Creating dummies...
-***********Finished preprocessing data!***********
-
-Splitting data...
-*************Finished splitting data!*************
-
-Model selection...
-
-Ridge Regression...
-Best Alpha: 10.0
-Cross Val Score: 0.18740275861207856
-Adj R2 Score: 0.1720989061100553
-***********Finished running all models!***********
-
-Running custom model function...
-
-
-Time: 2018-08-05 14:49:08.000245
+Time: 2018-08-05 18:59:59.499593
 
 Importing data...
 *************Finished importing data!*************

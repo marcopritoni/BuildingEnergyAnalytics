@@ -287,13 +287,14 @@ class Model_Data:
             TODO: Define custom function's parameters, its data types, and return types
         '''
 
-        y_true, y_pred = func(self.baseline_period_in, self.baseline_period_out)
+        y_pred = func(self.baseline_period_in, self.baseline_period_out)
 
         metrics = {}
-        metrics['r2'] = r2_score(y_true, y_pred)
-        metrics['mse'] = mean_squared_error(y_true, y_pred)
+        metrics['r2'] = r2_score(self.baseline_period_out, y_pred)
+        metrics['mse'] = mean_squared_error(self.baseline_period_out, y_pred)
         metrics['rmse'] = math.sqrt(metrics['mse'])
-        metrics['adj_r2'] = 1 - ((1 - metrics['r2']) * (y_true.count() - 1) / (y_true.count() - len(self.baseline_period_in.count()) - 1))
+        metrics['adj_r2'] = 1 - ((1 - metrics['r2']) * (self.baseline_period_out.count() - 1) / \
+                            (self.baseline_period_out.count() - len(self.baseline_period_in.count()) - 1))
 
         # print('{:<10}: {}'.format('R2', r2))
         self.f.write('{:<10}: {}\n'.format('R2', metrics['r2']))
