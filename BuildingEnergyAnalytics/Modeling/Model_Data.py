@@ -20,7 +20,13 @@ class Model_Data:
         self.f = f
         self.alphas = alphas
 
-        if (not time_period) or (len(time_period) % 2 != 0):
+        # CHECK: Convert datetimeindex to Timestamp.
+        if not time_period:
+            # start_index = df.head(1).index
+            # end_index = df.tail(1).index
+            # self.time_period = [pd.Timestamp(year=int(start_index.year)), pd.Timestamp(year=int(end_index.year))]
+            pass
+        elif (len(time_period) % 2 != 0):
             # print("Error: time_period needs to be a multiple of 2 (i.e. have a start and end date)")
             self.f.write('Error: time_period needs to be a multiple of 2 (i.e. have a start and end date)\n')
             raise SystemError('time_period needs to be a multiple of 2 (i.e. have a start and end date)')
@@ -264,8 +270,8 @@ class Model_Data:
 
         # self.linear_regression()
         # lasso_scores = self.lasso_regression()
-        ridge_scores = self.ridge_regression()
-        # elastic_scores = self.elastic_net_regression()
+        # ridge_scores = self.ridge_regression()
+        elastic_scores = self.elastic_net_regression()
 
         # # Plot Model Score vs Alphas to get an idea of which alphas work best
         # plt.plot(self.alphas, lasso_scores, color='blue', label='Lasso')
@@ -276,6 +282,7 @@ class Model_Data:
         # plt.title("R2 Score with varying alpha")
         # plt.legend()
         # plt.show()
+        # plt.savefig('acc_alpha.png')
 
         max_score = max(self.scores)
 
@@ -366,6 +373,8 @@ class Model_Data:
                     title='Projection Period ({}-{})'.format(self.time_period[i], self.time_period[i+1]))
                 num_plot += 1
 
-        plt.tight_layout()
-        plt.show()
+        # plt.tight_layout()
+        # plt.show()
+        fig.tight_layout()
+        fig.savefig('modeled_data.png')
 
