@@ -229,3 +229,357 @@ Adj_R2    : 0.7115356688523451
 Displaying plots...
 *************Finished modeling data!**************
 
+
+
+Time: 2018-08-08 11:48:41.433315
+
+Cleaning data...
+Data resampled at 'h'
+Data interpolated with limit of 1 element
+Data NA removed
+Data outliers removed
+Data out of bound points removed
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+Splitting data...
+*************Finished splitting data!*************
+
+Model selection...
+
+Elastic Net Regression...
+Best Alpha: 0.0017782794100389228
+Cross Val Score: 0.375044892714088
+Adj R2 Score: 0.3701635865506713
+***********Finished running all models!***********
+
+Choosing best model: ElasticNet Regression
+*******Successfully fit data to best model!*******
+
+Displaying metrics...
+R2        : 0.801459339117374
+MSE       : 42.62239859611671
+RMSE      : 6.5285831997545
+Adj_R2    : 0.7961947012635157
+***********Finished displaying metrics!***********
+
+Displaying plots...
+*************Finished modeling data!**************
+
+
+
+Time: 2018-08-08 12:00:05.995501
+
+Cleaning data...
+Data resampled at 'h'
+Data interpolated with limit of 1 element
+Data NA removed
+Data outliers removed
+Data out of bound points removed
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+
+
+Time: 2018-08-08 12:00:28.889002
+
+Cleaning data...
+Data resampled at 'h'
+Data interpolated with limit of 1 element
+Data NA removed
+Data outliers removed
+Data out of bound points removed
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+
+
+Time: 2018-08-13 15:32:31.428652
+
+Splitting data...
+
+
+Time: 2018-08-13 15:33:14.396027
+
+Splitting data...
+Error: Could not retrieve baseline_period data
+'slice(None, None, None)' is an invalid key
+
+Time: 2018-08-13 15:42:58.547525
+
+Importing data...
+*************Finished importing data!*************
+
+Cleaning data...
+Data resampled at 'h'
+Data interpolated with limit of 1 element
+Data NA removed
+Data outliers removed
+Data out of bound points removed
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+Splitting data...
+*************Finished splitting data!*************
+
+Model selection...
+
+Elastic Net Regression...
+Best Alpha: 0.0017782794100389228
+Cross Val Score: 0.18232865962845768
+Adj R2 Score: 0.16692924531737208
+***********Finished running all models!***********
+
+Running custom model function...
+R2        : 0.7460423736735797
+MSE       : 115.15902839067458
+RMSE      : 10.731217470104433
+Adj_R2    : 0.7412595244869085
+*****Finished running custom model function!******
+
+Choosing best model: ElasticNet Regression
+*******Successfully fit data to best model!*******
+
+Displaying metrics...
+R2        : 0.7293073256172645
+MSE       : 125.51837397723962
+RMSE      : 11.203498291928268
+Adj_R2    : 0.7115356688523451
+***********Finished displaying metrics!***********
+
+Displaying plots...
+*************Finished modeling data!**************
+
+
+
+Time: 2018-08-18 13:06:04.984118
+
+Importing data...
+*************Finished importing data!*************
+
+Cleaning data...
+Data resampled at 'h'
+Data interpolated with limit of 1 element
+Data NA removed
+Data outliers removed
+Data out of bound points removed
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+Splitting data...
+*************Finished splitting data!*************
+
+Model selection...
+
+Elastic Net Regression...
+Best Alpha: 0.03162277660168379
+Cross Val Score: 0.37752104360311217
+Adj R2 Score: 0.3733950008883321
+***********Finished running all models!***********
+
+Running custom model function...
+R2        : 0.5742300288767881
+MSE       : 165.88673718600808
+RMSE      : 12.87970252707756
+Adj_R2    : 0.5714078530112878
+*****Finished running custom model function!******
+
+Choosing best model: ElasticNet Regression
+*******Successfully fit data to best model!*******
+
+Displaying metrics...
+R2        : 0.479632580783814
+MSE       : 196.27762470515952
+RMSE      : 14.009911659434527
+Adj_R2    : 0.46795493207671834
+***********Finished displaying metrics!***********
+
+Displaying plots...
+*************Finished modeling data!**************
+
+
+
+Time: 2018-08-18 13:07:38.782580
+
+Importing data...
+*************Finished importing data!*************
+
+Cleaning data...
+Data resampled at 'h'
+Data interpolated with limit of 1 element
+Data NA removed
+Data outliers removed
+Data out of bound points removed
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+Splitting data...
+*************Finished splitting data!*************
+
+Model selection...
+
+Linear Regression...
+Cross Val Scores: [0.49477053 0.31811918 0.28269655]
+Mean Cross Val Scores: 0.3651954171792429
+***********Finished running all models!***********
+
+Running custom model function...
+R2        : 0.5742300288767881
+MSE       : 165.88673718600808
+RMSE      : 12.87970252707756
+Adj_R2    : 0.5714078530112878
+*****Finished running custom model function!******
+
+Choosing best model: Linear Regression
+*******Successfully fit data to best model!*******
+
+Displaying metrics...
+R2        : 0.5646922318153362
+MSE       : 164.19393605327468
+RMSE      : 12.813818168417823
+Adj_R2    : 0.554923420378242
+***********Finished displaying metrics!***********
+
+Displaying plots...
+*************Finished modeling data!**************
+
+
+
+Time: 2018-08-18 13:08:26.230396
+
+Importing data...
+*************Finished importing data!*************
+
+Cleaning data...
+Data resampled at 'h'
+Data interpolated with limit of 1 element
+Data NA removed
+Data outliers removed
+Data out of bound points removed
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+Splitting data...
+*************Finished splitting data!*************
+
+Model selection...
+
+Linear Regression...
+Cross Val Scores: [0.49477053 0.31811918 0.28269655]
+Mean Cross Val Scores: 0.3651954171792429
+***********Finished running all models!***********
+
+Running custom model function...
+R2        : 0.5742300288767881
+MSE       : 165.88673718600808
+RMSE      : 12.87970252707756
+Adj_R2    : 0.5714078530112878
+*****Finished running custom model function!******
+
+Choosing best model: Linear Regression
+*******Successfully fit data to best model!*******
+
+Displaying metrics...
+R2        : 0.5646922318153362
+MSE       : 164.19393605327465
+RMSE      : 12.813818168417821
+Adj_R2    : 0.554923420378242
+***********Finished displaying metrics!***********
+
+Displaying plots...
+*************Finished modeling data!**************
+
+
+
+Time: 2018-08-18 13:08:41.952817
+
+Importing data...
+*************Finished importing data!*************
+
+Cleaning data...
+Data resampled at 'h'
+Data interpolated with limit of 1 element
+Data NA removed
+Data outliers removed
+Data out of bound points removed
+*************Finished cleaning data!**************
+
+Preprocessing data...
+Adding degree days...
+Adding column features...
+Adding time features...
+Creating dummies...
+***********Finished preprocessing data!***********
+
+Splitting data...
+*************Finished splitting data!*************
+
+Model selection...
+
+Linear Regression...
+Cross Val Scores: [-8.09418725e+18 -1.44657502e+19 -3.78725594e+14]
+Mean Cross Val Scores: -7.520105400766479e+18
+***********Finished running all models!***********
+
+Running custom model function...
+R2        : 0.7460423736735797
+MSE       : 115.15902839067458
+RMSE      : 10.731217470104433
+Adj_R2    : 0.7412595244869085
+*****Finished running custom model function!******
+
+Choosing best model: Linear Regression
+*******Successfully fit data to best model!*******
+
+Displaying metrics...
+R2        : 0.7289142554608774
+MSE       : 125.70063796720977
+RMSE      : 11.211629585711872
+Adj_R2    : 0.7111167926488613
+***********Finished displaying metrics!***********
+
+Displaying plots...
+*************Finished modeling data!**************
+
