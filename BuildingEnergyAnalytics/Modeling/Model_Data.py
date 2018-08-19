@@ -1,5 +1,5 @@
 '''
-Last modified: August 5 2018
+Last modified: August 18 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
@@ -13,22 +13,20 @@ from sklearn.model_selection import KFold, cross_val_score, train_test_split
 
 class Model_Data:
 
-    def __init__(self, df, f, time_period, output_col, alphas, input_col=None):
+    def __init__(self, df, f, time_period, exclude_time_period, output_col, alphas, input_col=None):
         ''' Constructor '''
         self.original_data = df
         self.output_col = output_col
         self.f = f
         self.alphas = alphas
 
-
-        if not time_period:
-            self.time_period = [None, None]
-        elif (len(time_period) % 2 != 0):
+        if (len(time_period) % 2 != 0) or (len(exclude_time_period) % 2 != 0):
             # print("Error: time_period needs to be a multiple of 2 (i.e. have a start and end date)")
             self.f.write('Error: time_period needs to be a multiple of 2 (i.e. have a start and end date)\n')
             raise SystemError('time_period needs to be a multiple of 2 (i.e. have a start and end date)')
         else:
             self.time_period = time_period
+            self.exclude_time_period = exclude_time_period
 
         if not input_col:
             input_col = list(self.original_data.columns)
@@ -53,9 +51,16 @@ class Model_Data:
         ''' Split data according to time_period values '''
 
         time_period1 = (slice(self.time_period[0], self.time_period[1]))
+        exclude_time_period1 = (slice(self.exclude_time_period[0], self.exclude_time_period[1]))
         try:
+            # Extract data ranging in time_period1
             self.baseline_period_in = self.original_data.loc[time_period1, self.input_col]
             self.baseline_period_out = self.original_data.loc[time_period1, self.output_col]
+
+            if self.exclude_time_period[0] and self.exclude_time_period[1]:
+                # Drop data ranging in exclude_time_period1
+                self.baseline_period_in.drop(self.baseline_period_in.loc[exclude_time_period1].index, axis=0, inplace=True)
+                self.baseline_period_out.drop(self.baseline_period_out.loc[exclude_time_period1].index, axis=0, inplace=True)
         except Exception as e:
             # print("Error: Could not retrieve baseline_period data")
             self.f.write('Error: Could not retrieve baseline_period data\n')
@@ -265,21 +270,23 @@ class Model_Data:
 
     def run_models(self):
 
-        self.linear_regression()
-        # lasso_scores = self.lasso_regression()
+        # self.linear_regression()
+        lasso_scores = self.lasso_regression()
         # ridge_scores = self.ridge_regression()
         # elastic_scores = self.elastic_net_regression()
 
-        # # Plot Model Score vs Alphas to get an idea of which alphas work best
-        # plt.plot(self.alphas, lasso_scores, color='blue', label='Lasso')
+        # Plot Model Score vs Alphas to get an idea of which alphas work best
+        fig1 = plt.figure(1)
+        plt.plot(self.alphas, lasso_scores, color='blue', label='Lasso')
         # plt.plot(self.alphas, ridge_scores, color='black', label='Ridge')
         # plt.plot(self.alphas, elastic_scores, color='red', label='ElasticNet')
-        # plt.xlabel('Alpha')
-        # plt.ylabel('Model Accuracy')
-        # plt.title("R2 Score with varying alpha")
-        # plt.legend()
+        plt.xlabel('Alpha')
+        plt.ylabel('Model Accuracy')
+        plt.title("R2 Score with varying alpha")
+        plt.legend()
         # plt.show()
         # plt.savefig('acc_alpha.png')
+        plt.savefig('acc_alpha.png')
 
         max_score = max(self.scores)
 
@@ -346,13 +353,13 @@ class Model_Data:
         nrows = len(self.time_period) / 2
         
         # Create figure
-        fig = plt.figure(1)
+        fig2 = plt.figure(2)
 
         # Plot 1 - Baseline
         base_df = pd.DataFrame()
         base_df['y_true'] = self.y_true
         base_df['y_pred'] = self.y_pred
-        ax1 = fig.add_subplot(nrows, 1, 1)
+        ax1 = fig2.add_subplot(nrows, 1, 1)
         base_df.plot(ax=ax1, figsize=figsize,
             title='Baseline Period ({}-{})'.format(self.time_period[0], self.time_period[1]))
 
@@ -361,7 +368,7 @@ class Model_Data:
             
             num_plot = 2
             for i in range(2, len(self.time_period), 2):
-                ax = fig.add_subplot(nrows, 1, num_plot)
+                ax = fig2.add_subplot(nrows, 1, num_plot)
                 period = (slice(self.time_period[i], self.time_period[i+1]))
                 project_df = pd.DataFrame()
                 project_df['y_true'] = self.original_data.loc[period, self.output_col]
@@ -372,6 +379,6 @@ class Model_Data:
 
         # plt.tight_layout()
         # plt.show()
-        fig.tight_layout()
-        fig.savefig('modeled_data.png')
+        fig2.tight_layout()
+        fig2.savefig('modeled_data.png')
 

@@ -2,14 +2,13 @@
 This script is a wrapper class around all the different modules - importing, cleaning, preprocessing and modeling the data.
 
 TODO
-1. Add parameter that exlcudes certain time_periods.
-2. Dump metadata of optimal model. Also, save dataframe pulled from database.
-3. Save matplotlib graphs.
-4. Automate high_bound of data.
-5. Add option to standardize/normalize data before fitting to model.
-6. Add TimeSeriesSplit, ANN, SVM.
-7. Add percent error, NMBE in Model_Data.py/display_metrics().
-8. Dump data into json file.
+1. Save dataframe pulled from database.
+2. Dump metadata of optimal model.
+3. Automate high_bound of data.
+4. Add option to standardize/normalize data before fitting to model.
+5. Add TimeSeriesSplit, ANN, SVM, Randomforest.
+6. Add percent error, NMBE in Model_Data.py/display_metrics().
+7. Dump data into json file.
 
 Cleanup
 1. Delete unusued variables.
@@ -21,7 +20,7 @@ Note
 2. df.resample(freq='h').mean() drops all non-float/non-int columns
 3. os._exit(1) exits the program without calling cleanup handlers.
 
-Last modified: August 8 2018
+Last modified: August 18 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
@@ -114,13 +113,13 @@ class Wrapper:
         return self.preprocessed_data
 
 
-    def model(self, data, output_col, alphas=np.logspace(-4,1,30),
-            time_period=None, input_col=None, plot=True, figsize=None, custom_model_func=None):
+    def model(self, data, output_col, alphas=np.logspace(-4,1,30), time_period=[None,None], exclude_time_period=[None,None],
+            input_col=None, plot=True, figsize=None, custom_model_func=None):
 
         # print("Splitting data...")
         self.f.write('Splitting data...\n')
         
-        model_data_obj = Model_Data(data, self.f, time_period, output_col, alphas, input_col)
+        model_data_obj = Model_Data(data, self.f, time_period, exclude_time_period, output_col, alphas, input_col)
         model_data_obj.split_data()
         self.X = model_data_obj.baseline_period_in
         self.y = model_data_obj.baseline_period_out
