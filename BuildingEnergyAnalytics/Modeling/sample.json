@@ -1,0 +1,62 @@
+{
+	"Time": "2018-08-20 00:00:00",
+	
+	"Import": {
+		"Source": "CSV",
+		"Saved_File": "results/imported_data.csv"
+	},
+
+	"Clean": {
+		"Source": "results/imported_data.csv",
+		"Resample": "h",
+		"Rename_Columns": ["Wind Speed", "OAT_Mean"],
+		"Interpolate": {
+			"Method": "Linear",
+			"Limit": 1
+		},
+		"Drop_NA": "any",
+		"Drop_Outliers": 3,
+		"Drop_Out_of_Bounds": [0, 9998],
+		"Saved_File": "results/cleaned_data.csv"
+	},
+
+	"Preprocess": {
+		"Source": "results/cleaned_data.csv",
+		"Independent_Feature_Degree": {
+			"Power": 2,
+			"OAT": 3
+		},
+		"Time_Features": ["Year", "Month", "DOW"],
+		"Time_Features_Expanded": ["DOW"],
+		"HDH_Cpoint": 65,
+		"CDH_Cpoint": 65,
+		"HDH_CDH_Calc_Col": "OAT",
+		"Saved_File": "results/preprocessed_data.csv"
+	},
+
+	"Model": {
+		"Meta": {
+			"Source": "results/preprocessed_data.csv",
+			"Baseline_Time_Period": ["2017-06", "2017-12"],
+			"Projection_Time_Period": ["2018-01", "2018-03", "2018-03", "2018-06"],
+			"Exclude_Time_Period": ["2017-08", "2017-09"],
+			"Independent_Features": ["OAT", "HW_Heating"],
+			"Dependent_Feature": "Power",
+			"Figsize": "(18,5)",
+			"Custom_Model": "",
+			"Models_Ran": ["Linear Regression", "Lasso Regression", "Ridge Regression", "ElasticNet Regression"],
+			"CV": 3
+		},
+		"Metrics": {
+			"Lasso Regression": {
+				"Alphas": [0.0001, 0.001, 0.01, 0.1, 1, 10],
+				"Best_Alpha": [0.001],
+				"Scores": [100.0, 99.9, 99.8],
+				"Adjusted_R2": [95.0, 96.0, 97.0],
+			}
+		}
+	},
+
+	"Error": ""
+
+}

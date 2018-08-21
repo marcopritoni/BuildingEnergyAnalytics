@@ -15,10 +15,10 @@ import pandas as pd
 
 class Import_Data:
 
-	def __init__(self, f):
+	def __init__(self):
 		''' Constructor '''
 		self.data = pd.DataFrame()
-		self.f = f
+		# self.f = f
 
 
 	def import_csv(self, file_name=None, folder_name=None, head_row=0, index_col=0, convert_col=True, concat_files=False):
@@ -32,7 +32,7 @@ class Import_Data:
 
 		if not file_name and not folder_name:
 			# print("Error: Provide either file name or folder name.")
-			self.f.write('Error: Provide either file name or folder name.')
+			# self.f.write('Error: Provide either file name or folder name.')
 			raise SystemError('Provide either file name or folder name.')
 
 		if not file_name:
@@ -46,8 +46,8 @@ class Import_Data:
 				self.data = self._load_csv(file_name, folder_name, head_row, index_col, convert_col, concat_files)
 			except Exception as e:
 				# print("Error: Could not load file %s" % file_name)
-				self.f.write('Error: Could not load file {}'.format(file_name))
-				self.f.write(str(e))
+				# self.f.write('Error: Could not load file {}'.format(file_name))
+				# self.f.write(str(e))
 				raise
 
 		# Import multiple csv files in a particular folder
@@ -72,8 +72,8 @@ class Import_Data:
 						self.data = self.data.join(data_tmp, how="outer")
 				except Exception as e:
 					# print ("Error: Could not load file %s " % file)
-					self.f.write('Error: Could not load file {}'.format(file_name))
-					self.f.write(str(e))
+					# self.f.write('Error: Could not load file {}'.format(file_name))
+					# self.f.write(str(e))
 					raise
 
 		# CHECK: Below case finds file_name in every folder! Necessary?
@@ -89,7 +89,7 @@ class Import_Data:
 
 		else:
 			# print("Error: file_name and folder_name have to be either of type str or list(str)")
-			self.f.write('Error: file_name and folder_name have to be either of type str or list(str)')
+			# self.f.write('Error: file_name and folder_name have to be either of type str or list(str)')
 			raise SystemError('file_name and folder_name have to be either of type str or list(str)')
 
 
@@ -102,7 +102,7 @@ class Import_Data:
 
 			if not file_name_list:
 				# print("Error: Either the folder does not contain any csv files or invalid folder provided")
-				self.f.write('Error: Either the folder does not contain any csv files or invalid folder provided')
+				# self.f.write('Error: Either the folder does not contain any csv files or invalid folder provided')
 				raise SystemError('Either the folder does not contain any csv files or invalid folder provided.')
 			else:
 				# Call previous function again with parameters changed (file_name=file_name_list, folder_name=None)

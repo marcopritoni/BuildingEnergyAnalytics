@@ -9,19 +9,19 @@ from scipy import stats
 
 class Clean_Data:
 
-	def __init__(self, df, f):
+	def __init__(self, df):
 		''' Constructor '''
 		self.original_data = df
 		self.cleaned_data = pd.DataFrame()
-		self.f = f
+		# self.f = f
 
 	def rename_columns(self, col):
 		try:
 			self.cleaned_data.columns = col
 		except Exception as e:
 			# print('Error: Could not rename columns of dataframe!\n')
-			self.f.write('Error: Could not rename columns of dataframe!\n')
-			self.f.write(str(e))
+			# self.f.write('Error: Could not rename columns of dataframe!\n')
+			# self.f.write(str(e))
 			raise
 
 
@@ -77,55 +77,55 @@ class Clean_Data:
 			try:
 				data = self.resample_data(data, freq)
 				# print("Data resampled at \'%s\'" % freq)
-				self.f.write('Data resampled at \'{}\'\n'.format(freq))
+				# self.f.write('Data resampled at \'{}\'\n'.format(freq))
 			except Exception as e:
 				# print("Error: Could not resample data")
-				self.f.write('Error: Could not resample data\n')
-				self.f.write(str(e))
+				# self.f.write('Error: Could not resample data\n')
+				# self.f.write(str(e))
 				raise
 
 		if interpolate:
 			try:
 				data = self.interpolate_data(data, limit=limit)
 				# print("Data interpolated with limit of %s element" % limit)
-				self.f.write('Data interpolated with limit of {} element\n'.format(limit))
+				# self.f.write('Data interpolated with limit of {} element\n'.format(limit))
 			except Exception as e:
 				# print("Error: Could not interpolate data")
-				self.f.write('Error: Could not interpolate data\n')
-				self.f.write(str(e))
+				# self.f.write('Error: Could not interpolate data\n')
+				# self.f.write(str(e))
 				raise
 		
 		if remove_na:
 			try:
 				data = self.remove_na(data, remove_na_how)
 				# print("Data NA removed")
-				self.f.write('Data NA removed\n')
+				# self.f.write('Data NA removed\n')
 			except Exception as e:
 				# print("Error: Could not remove NA in data")
-				self.f.write('Error: Could not remove NA in data\n')
-				self.f.write(str(e))
+				# self.f.write('Error: Could not remove NA in data\n')
+				# self.f.write(str(e))
 				raise
 
 		if remove_outliers:
 			try:
 				data = self.remove_outliers(data, sd_val)
 				# print("Data outliers removed")
-				self.f.write('Data outliers removed\n')
+				# self.f.write('Data outliers removed\n')
 			except Exception as e:
 				# print("Error: Could not remove data outliers")
-				self.f.write('Error: Could not remove data outliers\n')
-				self.f.write(str(e))
+				# self.f.write('Error: Could not remove data outliers\n')
+				# self.f.write(str(e))
 				raise
 
 		if remove_out_of_bounds:
 			try:
 				data = self.remove_out_of_bounds(data, low_bound, high_bound)
 				# print("Data out of bound points removed")
-				self.f.write('Data out of bound points removed\n')
+				# self.f.write('Data out of bound points removed\n')
 			except Exception as e:
 				# print("Error: Could not remove data out of bound points")
-				self.f.write('Error: Could not remove data out of bound points\n')
-				self.f.write(str(e))
+				# self.f.write('Error: Could not remove data out of bound points\n')
+				# self.f.write(str(e))
 				raise
 
 		self.cleaned_data = data
