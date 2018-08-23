@@ -3,13 +3,20 @@ This script is a wrapper class around all the different modules - importing, cle
 
 TODO
 1. Dump data into json file.
-2. Remove alpha parameter.
-3. Add option to standardize/normalize data before fitting to model.
-4. Add TimeSeriesSplit, ANN, SVM, Randomforest.
-5. Add percent error, NMBE in Model_Data.py/display_metrics().
-6. Add run_all() function.
-7. In Model_Data.py - Move R2_Score v/s Alpha to display_plots()
-8. Add Pearson's coefficient.
+2. Add option to standardize/normalize data before fitting to model.
+3. Add TimeSeriesSplit, ANN, SVM, Randomforest.
+4. Add percent error, NMBE in Model_Data.py/display_metrics().
+5. Add run_all() function.
+6. Add Pearson's correlation coefficient.
+7. Add all function's parameters in json.
+8. Change SystemError to specific errors.
+9. Give user the option to run specific models.
+10. Write function to read json file.
+11. Run iterations on resampling frequency, adding time features (TOD, DOW, DOY...)
+12. Add drop column functionality in clean_data().
+13. Small fixes
+    1. Remove remove_na parameter in clean_data(). Use remove_na_how only.
+    2. Add cv parameter in model_data()
 
 Cleanup
 1. Delete unusued variables.
@@ -22,7 +29,7 @@ Note
 2. df.resample(freq='h').mean() drops all non-float/non-int columns
 3. os._exit(1) exits the program without calling cleanup handlers.
 
-Last modified: August 20 2018
+Last modified: August 23 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
@@ -44,12 +51,12 @@ class Wrapper:
         self.imported_data = pd.DataFrame()
         self.cleaned_data = pd.DataFrame()
         self.preprocessed_data = pd.DataFrame()
+        self.results_folder_name = results_folder_name
+        self.result = {}
+
         self.X = pd.DataFrame()
         self.y = pd.DataFrame()
         self.metrics = {}
-
-        self.results_folder_name = results_folder_name
-        self.result = {}
 
         # UTC Time
         self.result['Time (UTC)'] = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
@@ -58,12 +65,12 @@ class Wrapper:
         if not os.path.isdir(self.results_folder_name):
             os.makedirs(self.results_folder_name)
 
-    def __del__(self):
-        ''' Destructor '''
+    def write_json(self):
+        ''' Dump data into json '''
 
         # If no errors, set error = ''
-        if not 'Error' in self.result:
-            self.result['Error'] = ''
+        # if not 'Error' in self.result:
+        #     self.result['Error'] = ''
 
         # Dump json data to results.json file
         with open(self.results_folder_name+'/results.json', 'a') as f:
@@ -74,7 +81,7 @@ class Wrapper:
                     convert_col=True, concat_files=False, save_file=True):
         ''' 
             Import data from CSV, Influx, MongoDB...
-            Currently supports CSV files only.
+            Currently this function supports CSV files only.
         '''
         
         import_data_obj = Import_Data()
@@ -118,18 +125,30 @@ class Wrapper:
         if rename_col:
             clean_data_obj.rename_columns(rename_col)
         
+        # Store cleaned data
         self.cleaned_data = clean_data_obj.cleaned_data
+
+        self.result['Clean'] = {
+            'Source': self.results_folder_name+'/imported_data.csv',  # CHECK: How to figure out if user provided Dataframe or not.
+            'Rename Col': rename_col,
+            'Resample': resample,
+            'Frequency': freq,
+            'Interpolate': interpolate,
+            'Limit': limit,
+            'Remove NA': remove_na,
+            'Remove NA How': remove_na_how,
+            'Remove Outliers': remove_outliers,
+            'SD Val': sd_val,
+            'Remove Out of Bounds': remove_out_of_bounds,
+            'Low Bound': low_bound,
+            'High Bound': high_bound
+        }
+
         if save_file:
             self.cleaned_data.to_csv(self.results_folder_name+'/cleaned_data.csv')
-            self.result['Clean'] = {
-                'Source': self.results_folder_name+'/imported_data.csv',
-                'Saved_File': self.results_folder_name+'/cleaned_data.csv'
-            }
+            self.result['Clean']['Saved File'] = self.results_folder_name+'/cleaned_data.csv'
         else:
-            self.result['Clean'] = {
-                'Source': '',
-                'Saved_File': self.results_folder_name+'/cleaned_data.csv'
-            }
+            self.result['Clean']['Saved File'] = ''
         
         return self.cleaned_data
 
@@ -150,17 +169,28 @@ class Wrapper:
         preprocess_data_obj.create_dummies(var_to_expand=var_to_expand)
         
         self.preprocessed_data = preprocess_data_obj.preprocessed_data
+
+        self.result['Preprocess'] = {
+            'Source': self.results_folder_name+'/cleaned_data.csv',  # CHECK: How to figure out if user provided Dataframe or not.
+            'Input Col Degree': input_col_degree,
+            'Degree': degree,
+            'Year': YEAR,
+            'Month': MONTH,
+            'Week': WEEK,
+            'Time of Day': TOD,
+            'Day of Week': DOW,
+            'Day of Year': DOY,
+            'HDH CPoint': hdh_cpoint,
+            'CDH CPoint': cdh_cpoint,
+            'HDH CDH Calc Col': hdh_cdh_calc_col,
+            'Variables to Expand': var_to_expand
+        }
+
         if save_file:
             self.preprocessed_data.to_csv(self.results_folder_name+'/preprocessed_data.csv')
-            self.result['Preprocess'] = {
-                'Source': self.results_folder_name+'/cleaned_data.csv',
-                'Saved_File': self.results_folder_name+'/preprocessed_data.csv'
-            }
+            self.result['Preprocess']['Saved File'] = self.results_folder_name+'/preprocessed_data.csv'
         else:
-            self.result['Preprocess'] = {
-                'Source': '',
-                'Saved_File': self.results_folder_name+'/preprocessed_data.csv'
-            }
+            self.result['Preprocess']['Saved File'] = ''
 
         return self.preprocessed_data
 
@@ -187,7 +217,8 @@ class Wrapper:
         self.metrics = model_data_obj.display_metrics()
 
         if plot:
-            fig2 = model_data_obj.display_plots(figsize)
+            fig1, fig2 = model_data_obj.display_plots(figsize)
+            fig1.savefig(self.results_folder_name+'/acc_alpha.png')
             fig2.savefig(self.results_folder_name+'/modeled_data.png')
         
         return self.metrics

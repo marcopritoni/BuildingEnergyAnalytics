@@ -1,5 +1,5 @@
 '''
-Last modified: August 18 2018
+Last modified: August 23 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
 '''
 
@@ -42,6 +42,7 @@ class Model_Data:
         self.y_pred = pd.DataFrame()
         self.metrics = {}
 
+        self.score_list = []    # CHECK: Change variable names
         self.scores = []
         self.models = []
         self.model_names = []
@@ -62,9 +63,6 @@ class Model_Data:
                 self.baseline_period_in.drop(self.baseline_period_in.loc[exclude_time_period1].index, axis=0, inplace=True)
                 self.baseline_period_out.drop(self.baseline_period_out.loc[exclude_time_period1].index, axis=0, inplace=True)
         except Exception as e:
-            # print("Error: Could not retrieve baseline_period data")
-            # self.f.write('Error: Could not retrieve baseline_period data\n')
-            # self.f.write(str(e))
             raise
 
         # Error checking to ensure time_period values are valid
@@ -75,26 +73,15 @@ class Model_Data:
                     self.original_data.loc[period, self.input_col]
                     self.original_data.loc[period, self.output_col]
                 except Exception as e:
-                    # print("Error: Could not retrieve projection period data")
-                    # self.f.write('Error: Could not retrieve projection period data\n')
-                    # self.f.write(str(e))
                     raise
 
 
     def linear_regression(self):
 
-        # print("Linear Regression...")
-        # self.f.write('\nLinear Regression...\n')
-
         model = LinearRegression(normalize=True)
         scores = cross_val_score(model, self.baseline_period_in, self.baseline_period_out)
         mean_score = sum(scores) / len(scores)
         
-        # print("Cross Val Scores: ", scores)
-        # self.f.write('Cross Val Scores: {}\n'.format(scores))
-        # print("Mean Cross Val Score: ", mean_score)
-        # self.f.write('Mean Cross Val Scores: {}\n'.format(mean_score))
-
         self.models.append(model)
         self.scores.append(mean_score)
         self.model_names.append('Linear Regression')
@@ -102,15 +89,12 @@ class Model_Data:
 
     def lasso_regression(self):
 
-        # print("Lasso Regression...")
-        # self.f.write('\nLasso Regression...\n')
-
         score_list = []
         max_score = float('-inf')
         best_alpha = None
 
         for alpha in self.alphas:
-            print('Lasso')
+            print('Lasso Regression: Alpha = ', alpha)
             model = Lasso(normalize=True, alpha=alpha, max_iter=5000)
             model.fit(self.baseline_period_in, self.baseline_period_out.values.ravel())
             scores = cross_val_score(model, self.baseline_period_in, self.baseline_period_out)
@@ -126,47 +110,17 @@ class Model_Data:
         self.models.append(Lasso(alpha=best_alpha))
         self.scores.append(max_score)
         self.model_names.append('Lasso Regression')
-
-        # self.f.write('Best Alpha: {}\n'.format(best_alpha))
-        # self.f.write('Cross Val Score: {}\n'.format(max_score))
-        # self.f.write('Adj R2 Score: {}\n'.format(adj_r2))
-
-        return score_list
-
-        '''
-        # print("Lasso Regression...")
-        self.f.write('\nLasso Regression...\n')
-
-        model = LassoCV(normalize=True)
-        model.fit(self.baseline_period_in, self.baseline_period_out.values.ravel())
-        score = model.score(self.baseline_period_in, self.baseline_period_out)
-        adj_r2 = 1 - ((1-score)*(self.baseline_period_in.shape[0]-1) / (self.baseline_period_in.shape[0]-self.baseline_period_in.shape[1]-1))
-        
-        # print("Grid of alphas used for fitting: \n", model.alphas_)
-        # print("Best Alpha: ", model.alpha_)
-        self.f.write('Best Alpha: {}\n'.format(model.alpha_))
-        # print("Mean Cross Val Score: ", score)
-        self.f.write('Mean Cross Val Score: {}\n'.format(score))
-        # print("Adj R2 Score: ", adj_r2)
-        self.f.write('Adj R2 Score: {}\n'.format(adj_r2))
-
-        self.models.append(model)
-        self.scores.append(score)
-        self.model_names.append('Lasso Regression')
-        '''
+        self.score_list.append(score_list)
 
 
     def ridge_regression(self):
-
-        # print("Ridge Regression...")
-        # self.f.write('\nRidge Regression...\n')
 
         score_list = []
         max_score = float('-inf')
         best_alpha = None
 
         for alpha in self.alphas:
-            print('Ridge')
+            print('Ridge Regression: Alpha = ', alpha)
             model = Ridge(normalize=True, alpha=alpha, max_iter=5000)
             model.fit(self.baseline_period_in, self.baseline_period_out.values.ravel())
             scores = cross_val_score(model, self.baseline_period_in, self.baseline_period_out)
@@ -182,47 +136,17 @@ class Model_Data:
         self.models.append(Ridge(alpha=best_alpha))
         self.scores.append(max_score)
         self.model_names.append('Ridge Regression')
-
-        # self.f.write('Best Alpha: {}\n'.format(best_alpha))
-        # self.f.write('Cross Val Score: {}\n'.format(max_score))
-        # self.f.write('Adj R2 Score: {}\n'.format(adj_r2))
-
-        return score_list
-
-        '''
-        # print("Ridge Regression...")
-        self.f.write('\nRidge Regression...\n')
-
-        model = RidgeCV(normalize=True)
-        model.fit(self.baseline_period_in, self.baseline_period_out.values.ravel())
-        score = model.score(self.baseline_period_in, self.baseline_period_out)
-        adj_r2 = 1 - ((1-score)*(self.baseline_period_in.shape[0]-1) / (self.baseline_period_in.shape[0]-self.baseline_period_in.shape[1]-1))
-        
-        # print("Grid of alphas used for fitting: \n", model.alphas_)
-        # print("Best Alpha: ", model.alpha_)
-        self.f.write('Best Alpha: {}\n'.format(model.alpha_))
-        # print("Mean Cross Val Score: ", score)
-        self.f.write('Mean Cross Val Score: {}\n'.format(score))
-        # print("Adj R2 Score: ", adj_r2)
-        self.f.write('Adj R2 Score: {}\n'.format(adj_r2))
-
-        self.models.append(model)
-        self.scores.append(score)
-        self.model_names.append('Ridge Regression')
-        '''
+        self.score_list.append(score_list)
 
 
     def elastic_net_regression(self):
-
-        # print("Lasso Regression...")
-        # self.f.write('\nElastic Net Regression...\n')
 
         score_list = []
         max_score = float('-inf')
         best_alpha = None
 
         for alpha in self.alphas:
-            print('ElasticNet')
+            print('ElasticNet: Alpha = ', alpha)
             model = ElasticNet(normalize=True, alpha=alpha, max_iter=5000)
             model.fit(self.baseline_period_in, self.baseline_period_out.values.ravel())
             scores = cross_val_score(model, self.baseline_period_in, self.baseline_period_out)
@@ -238,55 +162,15 @@ class Model_Data:
         self.models.append(ElasticNet(alpha=best_alpha))
         self.scores.append(max_score)
         self.model_names.append('ElasticNet Regression')
-
-        # self.f.write('Best Alpha: {}\n'.format(best_alpha))
-        # self.f.write('Cross Val Score: {}\n'.format(max_score))
-        # self.f.write('Adj R2 Score: {}\n'.format(adj_r2))
-
-        return score_list
-
-        '''
-        # print("Elastic Net Regression...")
-        self.f.write('\nElastic Net Regression...\n')
-
-        model = ElasticNetCV(normalize=True)
-        model.fit(self.baseline_period_in, self.baseline_period_out.values.ravel())
-        score = model.score(self.baseline_period_in, self.baseline_period_out)
-        adj_r2 = 1 - ((1-score)*(self.baseline_period_in.shape[0]-1) / (self.baseline_period_in.shape[0]-self.baseline_period_in.shape[1]-1))
-        
-        # print("Grid of alphas used for fitting: \n", model.alphas_)
-        # print("Best Alpha: ", model.alpha_)
-        self.f.write('Best Alpha: {}\n'.format(model.alpha_))
-        # print("Mean Cross Val Score: ", score)
-        self.f.write('Mean Cross Val Score: {}\n'.format(score))
-        # print("Adj R2 Score: ", adj_r2)
-        self.f.write('Adj R2 Score: {}\n'.format(adj_r2))
-
-        self.models.append(model)
-        self.scores.append(score)
-        self.model_names.append('Elastic Net Regression')
-        '''
+        self.score_list.append(score_list)
 
 
     def run_models(self):
 
         self.linear_regression()
-        lasso_scores = self.lasso_regression()
-        ridge_scores = self.ridge_regression()
-        elastic_scores = self.elastic_net_regression()
-
-        # Plot Model Score vs Alphas to get an idea of which alphas work best
-        fig1 = plt.figure(1)
-        plt.plot(self.alphas, lasso_scores, color='blue', label='Lasso')
-        plt.plot(self.alphas, ridge_scores, color='black', label='Ridge')
-        plt.plot(self.alphas, elastic_scores, color='red', label='ElasticNet')
-        plt.xlabel('Alpha')
-        plt.ylabel('Model Accuracy')
-        plt.title("R2 Score with varying alpha")
-        plt.legend()
-        # plt.show()
-        # plt.savefig('acc_alpha.png')
-        plt.savefig('acc_alpha.png')
+        self.lasso_regression()
+        self.ridge_regression()
+        self.elastic_net_regression()
 
         max_score = max(self.scores)
 
@@ -307,15 +191,6 @@ class Model_Data:
         metrics['adj_r2'] = 1 - ((1 - metrics['r2']) * (self.baseline_period_out.count() - 1) / \
                             (self.baseline_period_out.count() - len(self.baseline_period_in.count()) - 1))
 
-        # print('{:<10}: {}'.format('R2', r2))
-        # self.f.write('{:<10}: {}\n'.format('R2', metrics['r2']))
-        # print('{:<10}: {}'.format('MSE', mse))
-        # self.f.write('{:<10}: {}\n'.format('MSE', metrics['mse']))
-        # print('{:<10}: {}'.format('MSE', mse))
-        # self.f.write('{:<10}: {}\n'.format('RMSE', metrics['rmse']))
-        # print('{:<10}: {}'.format('Adj_R2', adj_r2))
-        # self.f.write('{:<10}: {}\n'.format('Adj_R2', metrics['adj_r2']))
-
 
     def best_model_fit(self, model):
 
@@ -335,26 +210,27 @@ class Model_Data:
         self.metrics['rmse'] = math.sqrt(self.metrics['mse'])
         self.metrics['adj_r2'] = 1 - ((1 - self.metrics['r2']) * (self.y_true.count() - 1) / (self.y_true.count() - len(self.input_col) - 1))
 
-        # print('{:<10}: {}'.format('R2', r2))
-        # self.f.write('{:<10}: {}\n'.format('R2', self.metrics['r2']))
-        # print('{:<10}: {}'.format('MSE', mse))
-        # self.f.write('{:<10}: {}\n'.format('MSE', self.metrics['mse']))
-        # print('{:<10}: {}'.format('MSE', mse))
-        # self.f.write('{:<10}: {}\n'.format('RMSE', self.metrics['rmse']))
-        # print('{:<10}: {}'.format('Adj_R2', adj_r2))
-        # self.f.write('{:<10}: {}\n'.format('Adj_R2', self.metrics['adj_r2']))
-
         return self.metrics
 
 
     def display_plots(self, figsize):
 
+        # Figure 1 - Plot Model Score vs Alphas to get an idea of which alphas work best
+        fig1 = plt.figure(1)
+        plt.plot(self.alphas, self.score_list[0], color='blue', label=self.model_names[0])
+        plt.plot(self.alphas, self.score_list[1], color='black', label=self.model_names[1])
+        plt.plot(self.alphas, self.score_list[2], color='red', label=self.model_names[2])
+        plt.xlabel('Alphas')
+        plt.ylabel('Model Accuracy')
+        plt.title("R2 Score v/s alpha")
+        plt.legend()
+
+        # Figure 2 - Baseline and projection plots
+        fig2 = plt.figure(2)
+
         # Number of plots to display
         nrows = len(self.time_period) / 2
         
-        # Create figure
-        fig2 = plt.figure(2)
-
         # Plot 1 - Baseline
         base_df = pd.DataFrame()
         base_df['y_true'] = self.y_true
@@ -377,9 +253,6 @@ class Model_Data:
                     title='Projection Period ({}-{})'.format(self.time_period[i], self.time_period[i+1]))
                 num_plot += 1
 
-        # plt.tight_layout()
-        # plt.show()
         fig2.tight_layout()
-        # fig2.savefig('modeled_data.png')
-        return fig2
 
+        return fig1, fig2
