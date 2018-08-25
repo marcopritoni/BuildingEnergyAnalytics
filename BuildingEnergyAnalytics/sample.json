@@ -2,36 +2,50 @@
 	"Time": "2018-08-20 00:00:00",
 	
 	"Import": {
-		"Source": "CSV",
-		"Saved_File": "results/imported_data.csv"
+		"Source": "CSV", 
+		"File Name": "hello.csv",
+		"Folder Name": "../Desktop/",
+		"Head Row": 5,
+		"Index Col": 1,
+		"Convert Col": "True",
+		"Concat Files": "False",
+		"Saved File": "results/imported_data.csv"
 	},
 
 	"Clean": {
 		"Source": "results/imported_data.csv",
-		"Resample": "h",
-		"Rename_Columns": ["Wind Speed", "OAT_Mean"],
-		"Interpolate": {
-			"Method": "Linear",
-			"Limit": 1
-		},
-		"Drop_NA": "any",
-		"Drop_Outliers": 3,
-		"Drop_Out_of_Bounds": [0, 9998],
-		"Saved_File": "results/cleaned_data.csv"
+		"Rename Col": ["Wind Speed", "OAT_Mean"],
+		"Drop Col": ["OAT", "Elec"],
+		"Resample": "True",
+		"Frequency": "h",
+		"Interpolate": "True",
+		"Limit": 1,
+		"Method": "Linear",
+		"Remove NA": "True",
+		"Remove NA How": "any",
+		"Remove Outliers": "True",
+		"SD Val": 3,
+		"Remove Out of Bounds": "True",
+		"Low Bound": 0,
+		"High Bound": 9998,
+		"Saved File": "results/cleaned_data.csv"
 	},
 
 	"Preprocess": {
 		"Source": "results/cleaned_data.csv",
-		"Independent_Feature_Degree": {
-			"Power": 2,
-			"OAT": 3
-		},
-		"Time_Features": ["Year", "Month", "DOW"],
-		"Time_Features_Expanded": ["DOW"],
-		"HDH_Cpoint": 65,
-		"CDH_Cpoint": 65,
-		"HDH_CDH_Calc_Col": "OAT",
-		"Saved_File": "results/preprocessed_data.csv"
+		"HDH Cpoint": 65,
+		"CDH Cpoint": 65,
+		"HDH CDH Calc Col": "OAT",
+		"Col Degree": ["OAT", "Elec"],
+		"Degree": [1, 2],
+		"Year": "False",
+		"Month": "False",
+		"Week": "False",
+		"Time of Day": "False",
+		"Day of Week": "False",
+		"Day of Year": "False",
+		"Variables to Expand": ["DOW"],
+		"Saved File": "results/preprocessed_data.csv"
 	},
 
 	"Model": {
@@ -58,5 +72,5 @@
 	},
 
 	"Error": ""
-
+	
 }
