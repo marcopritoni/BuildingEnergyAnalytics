@@ -283,6 +283,11 @@ class Wrapper:
             fig1, fig2 = model_data_obj.display_plots(figsize)
             fig1.savefig(self.results_folder_name + '/acc_alpha.png')
             fig2.savefig(self.results_folder_name + '/modeled_data.png')
+
+        if self.preprocessed_data.empty:
+            self.result['Model']['Source'] = '' # User provided their own dataframe, i.e. they did not use preprocessed_data()
+        else:
+            self.result['Model']['Source'] = self.results_folder_name + '/preprocessed_data.csv'
         
         return self.metrics
 
