@@ -1,19 +1,18 @@
 '''
+
 This script is a wrapper class around all the different modules - importing, cleaning, preprocessing and modeling the data.
 
 To Do
 1. Model
     1. Add TimeSeriesSplit, ANN, SVM, Randomforest.
-    2. Add option to standardize/normalize data before fitting to model.
-    3. Add percent error, NMBE in Model_Data.py/display_metrics().
-    4. Add cv parameter in model_data()
+    2. Add percent error, NMBE in display_metrics().
+    3. Add max_iter as a parameter.
 2. Wrapper
-    1. Dump data into json file.
-    2. Add all function parameters in json.
-    3. Give user the option to run specific models.
+    1. Run iterations on resampling frequency, adding time features (TOD, DOW, DOY...)
+    2. Add option to standardize/normalize data before fitting to model (Preprocess?)
+    3. Add Pearson's correlation coefficient.
     4. Write function to read json file which runs run_all().
-    5. Run iterations on resampling frequency, adding time features (TOD, DOW, DOY...)
-    6. Add Pearson's correlation coefficient.
+    5. Give user the option to run specific models.
 3. All
     1. Change SystemError to specific errors.
 
@@ -30,6 +29,7 @@ Notes
 
 Last modified: August 25 2018
 @author Pranav Gupta <phgupta@ucdavis.edu>
+
 '''
 
 import os
@@ -67,12 +67,6 @@ class Wrapper:
 
     def write_json(self):
         ''' Dump data into json '''
-
-        # If no errors, set error = ''
-        # if not 'Error' in self.result:
-        #     self.result['Error'] = ''
-
-        # Dump json data to results.json file
         with open(self.results_folder_name+'/results.json', 'a') as f:
             json.dump(self.result, f)
 
@@ -125,8 +119,8 @@ class Wrapper:
         '''
 
         # Check to ensure data is a pandas series or dataframe
-        if not isinstance(data, pd.DataFrame) and not isinstance(data, pd.Series):
-            raise SystemError('data has to be a pandas dataframe or series.')
+        if not isinstance(data, pd.DataFrame):
+            raise SystemError('data has to be a pandas dataframe.')
         
         # Create instance and clean the data
         clean_data_obj = Clean_Data(data)
@@ -187,8 +181,8 @@ class Wrapper:
         '''
 
         # Check to ensure data is a pandas series or dataframe
-        if not isinstance(data, pd.DataFrame) and not isinstance(data, pd.Series):
-            raise SystemError('data has to be a pandas dataframe or series.')
+        if not isinstance(data, pd.DataFrame):
+            raise SystemError('data has to be a pandas dataframe.')
         
         # Create instance
         preprocess_data_obj = Preprocess_Data(data)
@@ -230,31 +224,65 @@ class Wrapper:
         return self.preprocessed_data
 
 
-    def model(self, data, output_col, alphas=np.logspace(-4,1,30), time_period=[None,None], exclude_time_period=[None,None],
-            input_col=None, plot=True, figsize=None, custom_model_func=None):
+    def model(self, data,
+            ind_col=None, dep_col=None, time_period=[None,None], exclude_time_period=[None,None], alphas=np.logspace(-4,1,30),
+            cv=3, plot=True, figsize=None,
+            custom_model_func=None):
+        '''
+            Split data, run models and display metrics & plots
+            ind_col (indepdent col)
+            dep_col (depedent col)
 
-        # if not data or not a DataFrame/Series:
-        #     raise error
+            Add parameters cv=3 and run_models=['Linear Regression']
+
+        '''
+
+        # Check to ensure data is a pandas series or dataframe
+        if not isinstance(data, pd.DataFrame):
+            raise SystemError('data has to be a pandas dataframe.')
         
-        model_data_obj = Model_Data(data, time_period, exclude_time_period, output_col, alphas, input_col)
+        # Create instance
+        model_data_obj = Model_Data(data, ind_col, dep_col, time_period, exclude_time_period, alphas, cv)
+
+        # Split data into baseline and projection
         model_data_obj.split_data()
         
-        self.X = model_data_obj.baseline_period_in
-        self.y = model_data_obj.baseline_period_out
+        # Save X and y
+        self.X = model_data_obj.baseline_in
+        self.y = model_data_obj.baseline_out
         
+        # Runs all models on the data and returns optimal model
         best_model, best_model_name = model_data_obj.run_models()
 
-        if custom_model_func:
-            model_data_obj.custom_model(custom_model_func)
+        # Logging
+        self.result['Model'] = {
+            'Independent Col': ind_col,
+            'Dependent Col': dep_col,
+            'Time Period': time_period,
+            'Exclude Time Period': exclude_time_period,
+            'Alphas': list(alphas),
+            'CV': cv,
+            'Plot': plot,
+            'Fig Size': figsize,
+            'Optimal Model': best_model_name
+            # Add custom model func name?
+        }
 
+        # CHECK: Define custom model's parameter and return types in documentation.
+        if custom_model_func:
+            self.result['Model']['Custom Model\'s Metrics'] = model_data_obj.custom_model(custom_model_func)
+
+        # Fit optimal model to data
         model_data_obj.best_model_fit(best_model)
 
+        # Save metrics of optimal model
         self.metrics = model_data_obj.display_metrics()
+        self.result['Model']['Optimal Model\'s Metrics'] = self.metrics
 
         if plot:
             fig1, fig2 = model_data_obj.display_plots(figsize)
-            fig1.savefig(self.results_folder_name+'/acc_alpha.png')
-            fig2.savefig(self.results_folder_name+'/modeled_data.png')
+            fig1.savefig(self.results_folder_name + '/acc_alpha.png')
+            fig2.savefig(self.results_folder_name + '/modeled_data.png')
         
         return self.metrics
 
@@ -275,7 +303,7 @@ if __name__ == '__main__':
     imported_data = wrapper_obj.import_data(folder_name='../../../../../Desktop/LBNL/Data/', head_row=[5,5,0])
     cleaned_data = wrapper_obj.clean_data(imported_data, high_bound=9998,
                                     rename_col=['OAT', 'RelHum_Avg', 'CHW_Elec', 'Elec', 'Gas', 'HW_Heat'])
-    preprocessed_data = wrapper_obj.preprocess_data(cleaned_data, WEEK=True, TOD=True, var_to_expand=['TOD','WEEK'])
-    wrapper_obj.model(preprocessed_data, output_col='HW_Heat', alphas=np.logspace(-4,1,5), figsize=(18,5),
+    preprocessed_data = wrapper_obj.preprocess_data(cleaned_data, week=True, tod=True, var_to_expand=['tod','week'])
+    wrapper_obj.model(preprocessed_data, dep_col='HW_Heat', alphas=np.logspace(-4,1,5), figsize=(18,5),
                     time_period=["2014-01","2014-12", "2015-01","2015-12", "2016-01","2016-12"],
                     custom_model_func=func)

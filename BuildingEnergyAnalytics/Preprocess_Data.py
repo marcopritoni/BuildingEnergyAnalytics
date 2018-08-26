@@ -1,7 +1,11 @@
 '''
-Last modified: August 5 2018
+
+This file preprocesses the data by adding degree days, time features to capture seasonal/monthly... trends
+
+Last modified: August 25 2018
 @author Marco Pritoni <marco.pritoni@gmail.com>
 @author Pranav Gupta <phgupta@ucdavis.edu>
+
 '''
 
 import pandas as pd
