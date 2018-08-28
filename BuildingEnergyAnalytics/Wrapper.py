@@ -11,10 +11,10 @@ To Do
     1. Run iterations on resampling frequency, adding time features (TOD, DOW, DOY...)
     2. Add option to standardize/normalize data before fitting to model (Preprocess?)
     3. Add Pearson's correlation coefficient.
-    4. Write function to read json file which runs run_all().
-    5. Give user the option to run specific models.
+    4. Give user the option to run specific models.
 3. All
     1. Change SystemError to specific errors.
+    2. Change json to yaml file.
 
 Cleanup
 1. Delete unusued variables.
@@ -48,6 +48,9 @@ class Wrapper:
     def __init__(self, results_folder_name='results'):
         ''' Constructor '''
 
+        # CHECK: Change to static variable
+        self.global_count = 1
+
         self.imported_data = pd.DataFrame()
         self.cleaned_data = pd.DataFrame()
         self.preprocessed_data = pd.DataFrame()
@@ -65,10 +68,93 @@ class Wrapper:
         if not os.path.isdir(self.results_folder_name):
             os.makedirs(self.results_folder_name)
 
+
     def write_json(self):
         ''' Dump data into json '''
-        with open(self.results_folder_name+'/results.json', 'a') as f:
+        with open(self.results_folder_name + '/results-' + str(self.global_count) + '.json', 'a') as f:
             json.dump(self.result, f)
+
+
+    def read_json(self, file_name):
+        ''' Read input json file '''
+        
+        with open(file_name) as f:
+            input_json = json.load(f)
+
+            import_json = input_json['Import']
+            imported_data = self.import_data(file_name=import_json['File Name'], folder_name=import_json['Folder Name'],
+                                                head_row=import_json['Head Row'], index_col=import_json['Index Col'],
+                                                convert_col=import_json['Convert Col'], concat_files=import_json['Concat Files'])
+
+            clean_json = input_json['Clean']
+            cleaned_data = self.clean_data(imported_data, rename_col=clean_json['Rename Col'], drop_col=clean_json['Drop Col'],
+                                        resample=clean_json['Resample'], freq=clean_json['Frequency'],
+                                        interpolate=clean_json['Interpolate'], limit=clean_json['Limit'],
+                                        method=clean_json['Method'], remove_na=clean_json['Remove NA'],
+                                        remove_na_how=clean_json['Remove NA How'], remove_outliers=clean_json['Remove Outliers'],
+                                        sd_val=clean_json['SD Val'], remove_out_of_bounds=clean_json['Remove Out of Bounds'],
+                                        low_bound=clean_json['Low Bound'], high_bound=clean_json['High Bound'])
+            
+            preproc_json = input_json['Preprocess']
+            preprocessed_data = self.preprocess_data(cleaned_data, cdh_cpoint=preproc_json['CDH CPoint'],
+                        hdh_cpoint=preproc_json['HDH CPoint'], col_hdh_cdh=preproc_json['HDH CDH Calc Col'],
+                        col_degree=preproc_json['Col Degree'], degree=preproc_json['Degree'],
+                        year=preproc_json['Year'], month=preproc_json['Month'], week=preproc_json['Week'],
+                        tod=preproc_json['Time of Day'], dow=preproc_json['Day of Week'], doy=preproc_json['Day of Year'],
+                        var_to_expand=preproc_json['Variables to Expand'])
+
+            model_json = input_json['Model']
+            model_data = self.model(preprocessed_data, ind_col=model_json['Independent Col'], dep_col=model_json['Dependent Col'],
+                time_period=model_json['Time Period'], exclude_time_period=model_json['Exclude Time Period'],
+                alphas=model_json['Alphas'], cv=model_json['CV'], plot=model_json['Plot'], figsize=model_json['Fig Size'])
+
+            self.write_json()
+
+
+    def search(self, file_name, imported_data=None):
+        ''' Run models on different data configurations '''
+
+        resample_freq = ['15T', 'h', 'd']
+
+        # CSV Files
+        if imported_data.empty:
+            with open(file_name) as f:
+                input_json = json.load(f)
+                import_json = input_json['Import']
+                imported_data = self.import_data(file_name=import_json['File Name'], folder_name=import_json['Folder Name'],
+                                                    head_row=import_json['Head Row'], index_col=import_json['Index Col'],
+                                                    convert_col=import_json['Convert Col'], concat_files=import_json['Concat Files'])
+
+        with open(file_name) as f:
+            input_json = json.load(f)
+
+            for x in resample_freq:
+                clean_json = input_json['Clean']
+                cleaned_data = self.clean_data(imported_data, rename_col=clean_json['Rename Col'], drop_col=clean_json['Drop Col'],
+                                            resample=clean_json['Resample'], 
+                                            freq=x,
+                                            interpolate=clean_json['Interpolate'], limit=clean_json['Limit'],
+                                            method=clean_json['Method'], remove_na=clean_json['Remove NA'],
+                                            remove_na_how=clean_json['Remove NA How'], remove_outliers=clean_json['Remove Outliers'],
+                                            sd_val=clean_json['SD Val'], remove_out_of_bounds=clean_json['Remove Out of Bounds'],
+                                            low_bound=clean_json['Low Bound'], high_bound=clean_json['High Bound'])
+                
+                preproc_json = input_json['Preprocess']
+                preprocessed_data = self.preprocess_data(cleaned_data, cdh_cpoint=preproc_json['CDH CPoint'],
+                            hdh_cpoint=preproc_json['HDH CPoint'], col_hdh_cdh=preproc_json['HDH CDH Calc Col'],
+                            col_degree=preproc_json['Col Degree'], degree=preproc_json['Degree'],
+                            year=preproc_json['Year'], month=preproc_json['Month'], week=preproc_json['Week'],
+                            tod=preproc_json['Time of Day'], dow=preproc_json['Day of Week'], doy=preproc_json['Day of Year'],
+                            var_to_expand=preproc_json['Variables to Expand'])
+
+                model_json = input_json['Model']
+                model_data = self.model(preprocessed_data, global_count=self.global_count,
+                    ind_col=model_json['Independent Col'], dep_col=model_json['Dependent Col'],
+                    time_period=model_json['Time Period'], exclude_time_period=model_json['Exclude Time Period'],
+                    alphas=model_json['Alphas'], cv=model_json['CV'], plot=model_json['Plot'], figsize=model_json['Fig Size'])
+
+                self.write_json()
+                self.global_count += 2
 
 
     def import_data(self, file_name='*', folder_name='.', head_row=0, index_col=0, 
@@ -98,8 +184,8 @@ class Wrapper:
         }
         
         if save_file:
-            self.imported_data.to_csv(self.results_folder_name + '/imported_data.csv')
-            self.result['Import']['Saved File'] = self.results_folder_name + '/imported_data.csv'
+            self.imported_data.to_csv(self.results_folder_name + '/imported_data-' + str(self.global_count) + '.csv')
+            self.result['Import']['Saved File'] = self.results_folder_name + '/imported_data-' + str(self.global_count) + '.csv'
         else:
             self.result['Import']['Saved File'] = ''
 
@@ -158,11 +244,11 @@ class Wrapper:
         if self.imported_data.empty:
             self.result['Clean']['Source'] = '' # User provided their own dataframe, i.e. they did not use import_data()
         else:
-            self.result['Clean']['Source'] = self.results_folder_name + '/imported_data.csv'
+            self.result['Clean']['Source'] = self.results_folder_name + '/imported_data-' + str(self.global_count) + '.csv'
 
         if save_file:
-            self.cleaned_data.to_csv(self.results_folder_name + '/cleaned_data.csv')
-            self.result['Clean']['Saved File'] = self.results_folder_name + '/cleaned_data.csv'
+            self.cleaned_data.to_csv(self.results_folder_name + '/cleaned_data-' + str(self.global_count) + '.csv')
+            self.result['Clean']['Saved File'] = self.results_folder_name + '/cleaned_data-' + str(self.global_count) + '.csv'
         else:
             self.result['Clean']['Saved File'] = ''
 
@@ -213,18 +299,18 @@ class Wrapper:
         if self.cleaned_data.empty:
             self.result['Preprocess']['Source'] = '' # User provided their own dataframe, i.e. they did not use cleaned_data()
         else:
-            self.result['Preprocess']['Source'] = self.results_folder_name + '/cleaned_data.csv'
+            self.result['Preprocess']['Source'] = self.results_folder_name + '/cleaned_data-' + str(self.global_count) + '.csv'
 
         if save_file:
-            self.preprocessed_data.to_csv(self.results_folder_name + '/preprocessed_data.csv')
-            self.result['Preprocess']['Saved File'] = self.results_folder_name + '/preprocessed_data.csv'
+            self.preprocessed_data.to_csv(self.results_folder_name + '/preprocessed_data-' + str(self.global_count) + '.csv')
+            self.result['Preprocess']['Saved File'] = self.results_folder_name + '/preprocessed_data-' + str(self.global_count) + '.csv'
         else:
             self.result['Preprocess']['Saved File'] = ''
 
         return self.preprocessed_data
 
 
-    def model(self, data,
+    def model(self, data, global_count,
             ind_col=None, dep_col=None, time_period=[None,None], exclude_time_period=[None,None], alphas=np.logspace(-4,1,30),
             cv=3, plot=True, figsize=None,
             custom_model_func=None):
@@ -242,7 +328,7 @@ class Wrapper:
             raise SystemError('data has to be a pandas dataframe.')
         
         # Create instance
-        model_data_obj = Model_Data(data, ind_col, dep_col, time_period, exclude_time_period, alphas, cv)
+        model_data_obj = Model_Data(data, ind_col, dep_col, time_period, exclude_time_period, alphas, cv, global_count)
 
         # Split data into baseline and projection
         model_data_obj.split_data()
@@ -281,13 +367,13 @@ class Wrapper:
 
         if plot:
             fig1, fig2 = model_data_obj.display_plots(figsize)
-            fig1.savefig(self.results_folder_name + '/acc_alpha.png')
-            fig2.savefig(self.results_folder_name + '/modeled_data.png')
+            fig1.savefig(self.results_folder_name + '/acc_alpha-' + str(self.global_count) + '.png')
+            fig2.savefig(self.results_folder_name + '/modeled_data-' + str(self.global_count) + '.png')
 
         if self.preprocessed_data.empty:
             self.result['Model']['Source'] = '' # User provided their own dataframe, i.e. they did not use preprocessed_data()
         else:
-            self.result['Model']['Source'] = self.results_folder_name + '/preprocessed_data.csv'
+            self.result['Model']['Source'] = self.results_folder_name + '/preprocessed_data-' + str(self.global_count) + '.csv'
         
         return self.metrics
 

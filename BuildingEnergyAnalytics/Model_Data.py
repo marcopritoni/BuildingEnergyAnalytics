@@ -18,11 +18,12 @@ from sklearn.model_selection import KFold, cross_val_score, train_test_split
 
 class Model_Data:
 
-    def __init__(self, df, input_col, output_col, time_period, exclude_time_period, alphas, cv):
+    def __init__(self, df, input_col, output_col, time_period, exclude_time_period, alphas, cv, global_count):
         ''' Constructor '''
 
         self.original_data = df
         self.cv = cv
+        self.global_count = global_count
         
         if (len(time_period) % 2 != 0) or (len(exclude_time_period) % 2 != 0):
             raise SystemError('time_periods need to be a multiple of 2 (i.e. have a start and end date)')
@@ -248,7 +249,8 @@ class Model_Data:
 
         # Figure 1
         # Plot Model Score vs Alphas to get an idea of which alphas work best
-        fig1 = plt.figure(1)
+        # fig1 = plt.figure(1)
+        fig1 = plt.figure(self.global_count)
         plt.plot(self.alphas, self.alpha_scores[0], color='blue', label=self.model_names[0])
         plt.plot(self.alphas, self.alpha_scores[1], color='black', label=self.model_names[1])
         plt.plot(self.alphas, self.alpha_scores[2], color='red', label=self.model_names[2])
@@ -260,7 +262,8 @@ class Model_Data:
 
         # Figure 2
         # Baseline and projection plots
-        fig2 = plt.figure(2)
+        # fig2 = plt.figure(2)
+        fig2 = plt.figure(self.global_count + 1)
 
         # Number of plots to display
         nrows = len(self.time_period) / 2
