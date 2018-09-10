@@ -51,17 +51,19 @@ class Model_Data:
         else:
             self.alphas = alphas
 
-        self.model          = None
-        self.baseline_in    = pd.DataFrame()
-        self.baseline_out   = pd.DataFrame()
-        self.y_true         = pd.DataFrame()
-        self.y_pred         = pd.DataFrame()
-        self.metrics        = {}
+        self.model              = None
+        self.baseline_in        = pd.DataFrame()
+        self.baseline_out       = pd.DataFrame()
+        self.y_true             = pd.DataFrame()
+        self.y_pred             = pd.DataFrame()
+        self.metrics            = {}
 
-        self.models         = []
-        self.model_names    = []
-        self.max_scores     = []
-        self.alpha_scores   = []
+        self.models             = []
+        self.model_names        = []
+        self.max_scores         = []
+        self.alpha_scores       = []
+
+        self.best_model_name    = None
 
 
     def split_data(self):
@@ -108,6 +110,9 @@ class Model_Data:
         self.models.append(model)
         self.model_names.append('Linear Regression')
         self.max_scores.append(mean_score)
+        self.alpha_scores.append([])
+
+        self.metrics['Linear Regression'] = mean_score
 
 
     def lasso_regression(self):
@@ -135,6 +140,8 @@ class Model_Data:
         self.max_scores.append(max_score)
         self.alpha_scores.append(score_list)
 
+        self.metrics['Lasso Regression'] = score_list
+
 
     def ridge_regression(self):
         ''' Ridge Regression '''
@@ -161,6 +168,7 @@ class Model_Data:
         self.max_scores.append(max_score)
         self.alpha_scores.append(score_list)
 
+        self.metrics['Ridge Regression'] = score_list
 
     def elastic_net_regression(self):
         ''' ElasticNet Regression '''
@@ -187,6 +195,8 @@ class Model_Data:
         self.max_scores.append(max_score)
         self.alpha_scores.append(score_list)
 
+        self.metrics['ElasticNet Regression'] = score_list
+
 
     def run_models(self):
         ''' Run all models and find optimal model '''
@@ -198,8 +208,9 @@ class Model_Data:
 
         # Find model with maximum score
         max_score = max(self.max_scores)
+        self.best_model_name = self.model_names[self.max_scores.index(max_score)]
 
-        return self.models[self.max_scores.index(max_score)], self.model_names[self.max_scores.index(max_score)]
+        return self.models[self.max_scores.index(max_score)], self.metrics
 
 
     def custom_model(self, func):
@@ -237,10 +248,13 @@ class Model_Data:
     def display_metrics(self):
         ''' Display metrics '''
 
+        self.metrics = {}
+        self.metrics['name'] = self.best_model_name
         self.metrics['r2'] = r2_score(self.y_true, self.y_pred)
         self.metrics['mse'] = mean_squared_error(self.y_true, self.y_pred)
         self.metrics['rmse'] = math.sqrt(self.metrics['mse'])
-        self.metrics['adj_r2'] = self.adj_r2(self.metrics['r2'], self.n_test, self.k_test) # DOUBLE CHECK.
+        self.metrics['adj_r2'] = self.adj_r2(self.metrics['r2'], 
+                                                                self.n_test, self.k_test) # DOUBLE CHECK.
 
         return self.metrics
 
@@ -250,10 +264,11 @@ class Model_Data:
         # Figure 1
         # Plot Model Score vs Alphas to get an idea of which alphas work best
         # fig1 = plt.figure(1)
+        # CHECK: Change hardcoding of alpha_scores[1]...
         fig1 = plt.figure(self.global_count)
-        plt.plot(self.alphas, self.alpha_scores[0], color='blue', label=self.model_names[0])
-        plt.plot(self.alphas, self.alpha_scores[1], color='black', label=self.model_names[1])
-        plt.plot(self.alphas, self.alpha_scores[2], color='red', label=self.model_names[2])
+        plt.plot(self.alphas, self.alpha_scores[1], color='blue', label=self.model_names[1])
+        plt.plot(self.alphas, self.alpha_scores[2], color='black', label=self.model_names[2])
+        plt.plot(self.alphas, self.alpha_scores[3], color='red', label=self.model_names[3])
         plt.xlabel('Alphas')
         plt.ylabel('Model Accuracy')
         plt.title("R2 Score v/s alpha")

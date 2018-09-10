@@ -7,6 +7,8 @@ To Do
     1. Add TimeSeriesSplit, ANN, SVM, Randomforest.
     2. Add percent error, NMBE in display_metrics().
     3. Add max_iter as a parameter.
+    4. Put lower bound = 0 in regression models. (Check for papers mentioning it)
+    5. Output results of all models.
 2. Wrapper
     1. Run iterations on resampling frequency, adding time features (TOD, DOW, DOY...)
     2. Add option to standardize/normalize data before fitting to model (Preprocess?)
@@ -15,11 +17,12 @@ To Do
 3. All
     1. Change SystemError to specific errors.
     2. Change json to yaml file.
+    3. Ensure Python2.7 compatibility.
 
 Cleanup
 1. Delete unusued variables.
 2. Run pylint on all files.
-3. Documentation.
+3. Documentation (Scripts + yaml file)
 4. Structure code to publish to PyPI.
 
 Notes
@@ -117,7 +120,7 @@ class Wrapper:
         resample_freq = ['15T', 'h', 'd']
 
         # CSV Files
-        if imported_data.empty:
+        if not imported_data:
             with open(file_name) as f:
                 input_json = json.load(f)
                 import_json = input_json['Import']
@@ -310,7 +313,7 @@ class Wrapper:
         return self.preprocessed_data
 
 
-    def model(self, data, global_count,
+    def model(self, data, global_count=1,
             ind_col=None, dep_col=None, time_period=[None,None], exclude_time_period=[None,None], alphas=np.logspace(-4,1,30),
             cv=3, plot=True, figsize=None,
             custom_model_func=None):
@@ -319,7 +322,7 @@ class Wrapper:
             ind_col (indepdent col)
             dep_col (depedent col)
 
-            Add parameters cv=3 and run_models=['Linear Regression']
+            Add parameter run_models=['Linear Regression']
 
         '''
 
@@ -337,9 +340,6 @@ class Wrapper:
         self.X = model_data_obj.baseline_in
         self.y = model_data_obj.baseline_out
         
-        # Runs all models on the data and returns optimal model
-        best_model, best_model_name = model_data_obj.run_models()
-
         # Logging
         self.result['Model'] = {
             'Independent Col': ind_col,
@@ -350,9 +350,13 @@ class Wrapper:
             'CV': cv,
             'Plot': plot,
             'Fig Size': figsize,
-            'Optimal Model': best_model_name
+            # 'Optimal Model': best_model_name
             # Add custom model func name?
         }
+
+        # Runs all models on the data and returns optimal model
+        best_model, metrics = model_data_obj.run_models()
+        self.result['Model']['All Models'] = metrics
 
         # CHECK: Define custom model's parameter and return types in documentation.
         if custom_model_func:
